@@ -1,0 +1,1648 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Biber-Blockwelt</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Lernspiel in einer Block-Welt zur Vorbereitung auf den Informatik-Biber, Stufe 5–6. Alle Aufgaben können vorgelesen werden.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&family=Pixelify+Sans:wght@500;700&display=swap">
+<style>
+/* Layout: eine Spalte wie eine Block-Welt im Querschnitt – Himmel oben, Biome als Schichten, Aufgaben als Bretter-Tafeln. */
+:root{
+  --sky:#9ED2F4; --sky2:#DDF0FB;
+  --panel:#F7F1E0; --panel2:#EDE3C6; --edge:#B39462; --edge2:#8C6E42;
+  --ink:#2A241E; --ink2:#5B5145;
+  --accent:#E3A21A; --accent-ink:#2E1F00;
+  --go:#4E9A33; --go-edge:#2F6B1D; --go-ink:#FFFFFF;
+  --crystal:#178FA2; --ok:#2B8636; --bad:#B4371F;
+  --focus:#1F5FD1; --mark-s:#FFF0A3; --mark-w:#FFCF33;
+  --wire:#8A7A62; --wire-on:#F0AE12; --chip:#E6D9B5; --cell:#E9DFC3; --cell-line:#CDBE98;
+  --shade:rgba(0,0,0,.22); --light:rgba(255,255,255,.35);
+  --f-body:'Lexend','Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-pix:'Pixelify Sans','Lexend',system-ui,sans-serif;
+  --scale:1;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --sky:#0D1730; --sky2:#1A2948;
+  --panel:#242A38; --panel2:#2D3445; --edge:#4B546C; --edge2:#626C88;
+  --ink:#EFE9DA; --ink2:#C0B7A4;
+  --accent:#F2B835; --accent-ink:#241800;
+  --go:#4C9A35; --go-edge:#2C5E1C; --go-ink:#FFFFFF;
+  --crystal:#5DD8E8; --ok:#67C873; --bad:#FF8A70;
+  --focus:#86B6FF; --mark-s:#4B4322; --mark-w:#8F7612;
+  --wire:#6D7489; --wire-on:#F6C445; --chip:#394052; --cell:#2F3647; --cell-line:#454E64;
+  --shade:rgba(0,0,0,.4); --light:rgba(255,255,255,.12);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --sky:#0D1730; --sky2:#1A2948;
+  --panel:#242A38; --panel2:#2D3445; --edge:#4B546C; --edge2:#626C88;
+  --ink:#EFE9DA; --ink2:#C0B7A4;
+  --accent:#F2B835; --accent-ink:#241800;
+  --go:#4C9A35; --go-edge:#2C5E1C; --go-ink:#FFFFFF;
+  --crystal:#5DD8E8; --ok:#67C873; --bad:#FF8A70;
+  --focus:#86B6FF; --mark-s:#4B4322; --mark-w:#8F7612;
+  --wire:#6D7489; --wire-on:#F6C445; --chip:#394052; --cell:#2F3647; --cell-line:#454E64;
+  --shade:rgba(0,0,0,.4); --light:rgba(255,255,255,.12);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+img{max-width:100%}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--sky); background-image:linear-gradient(180deg,var(--sky) 0%,var(--sky2) 70%); background-attachment:fixed;
+  color:var(--ink); font-family:var(--f-body); font-size:calc(1.1875rem * var(--scale)); line-height:1.7;
+  letter-spacing:.012em; word-spacing:.06em; min-height:100vh;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--sky)}
+.wrap{max-width:900px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.b{background-size:100% 100%;image-rendering:pixelated;image-rendering:crisp-edges}
+img.px,.px{image-rendering:pixelated}
+h1,h2,h3{font-family:var(--f-pix);font-weight:700;line-height:1.2;text-wrap:balance;margin:0;letter-spacing:.02em}
+
+/* Kopfzeile */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--sky);border-bottom:4px solid var(--edge2)}
+.top-in{max-width:900px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;background:none;border:0;padding:4px 0;font-family:var(--f-pix);font-weight:700;font-size:1.35rem;color:var(--ink);text-align:left}
+.brand img{width:40px;height:40px}
+.top-sp{flex:1}
+.gems{display:flex;align-items:center;gap:6px;font-family:var(--f-pix);font-weight:700;font-size:1.15rem;background:var(--panel);border:3px solid var(--edge2);padding:2px 10px;border-radius:3px;font-variant-numeric:tabular-nums}
+.gems img{width:22px;height:22px}
+
+/* Bausteine: Knöpfe */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:8px 16px;border:3px solid var(--edge2);border-radius:3px;background:var(--panel2);color:var(--ink);font-weight:500;
+  box-shadow:inset -4px -4px 0 var(--shade),inset 4px 4px 0 var(--light);text-align:center;line-height:1.25}
+.btn:hover{filter:brightness(1.04)}
+.btn:active{box-shadow:inset 4px 4px 0 var(--shade)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn.go{background:var(--go);border-color:var(--go-edge);color:var(--go-ink);font-weight:700}
+.btn.gold{background:var(--accent);border-color:var(--edge2);color:var(--accent-ink);font-weight:700}
+.btn.small{min-height:40px;padding:4px 12px;font-size:.92em}
+.btn svg{width:22px;height:22px;flex:none}
+.btn.on{background:var(--accent);color:var(--accent-ink)}
+.say{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;flex:none;border:3px solid var(--edge2);border-radius:3px;background:var(--panel2);padding:0;
+  box-shadow:inset -3px -3px 0 var(--shade),inset 3px 3px 0 var(--light);color:var(--ink)}
+.say svg{width:20px;height:20px}
+.say.on{background:var(--accent);color:var(--accent-ink)}
+
+/* Tafeln */
+.panel{background:var(--panel);border:4px solid var(--edge2);border-radius:4px;box-shadow:0 6px 0 var(--shade);padding:16px}
+.panel + .panel{margin-top:16px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.muted{color:var(--ink2)}
+.readable p{margin:0 0 .55em;max-width:62ch}
+.readable p:last-child{margin-bottom:0}
+.s{border-radius:3px;transition:background-color .15s;cursor:pointer;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.s.reading{background:var(--mark-s)}
+.w.now{background:var(--mark-w);border-radius:3px;box-shadow:0 0 0 2px var(--mark-w)}
+.q{font-weight:700}
+.reading-el{outline:4px solid var(--accent);outline-offset:2px}
+
+/* Startseite */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start;margin-top:20px}
+.hero .bix{width:96px;height:96px}
+.bubble{position:relative}
+.bubble .row{margin-top:12px}
+.countdown{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px;padding:12px 16px;background:var(--panel2);border:3px dashed var(--edge2);border-radius:4px}
+.countdown b{font-family:var(--f-pix);font-size:1.5rem}
+.biome{margin-top:28px}
+.biome-band{height:28px;border:4px solid var(--edge2);border-bottom:0;border-radius:4px 4px 0 0;background-size:28px 28px;background-repeat:repeat-x;image-rendering:pixelated}
+.biome .panel{border-radius:0 0 4px 4px}
+.biome-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.biome-head h2{font-size:1.45rem}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.tile{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:12px 14px 12px 60px;min-height:88px;border:3px solid var(--edge2);border-radius:3px;background:var(--panel2);text-align:left;
+  box-shadow:inset -4px -4px 0 var(--shade),inset 4px 4px 0 var(--light)}
+.tile .num{position:absolute;left:10px;top:12px;width:40px;height:40px;display:grid;place-items:center;font-family:var(--f-pix);font-weight:700;font-size:1.2rem;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.45);border:2px solid rgba(0,0,0,.35)}
+.tile .t{font-weight:700;line-height:1.3}
+.tile .m{font-size:.85em;color:var(--ink2);display:flex;align-items:center;gap:6px;line-height:1.35}
+.tile.done{background:color-mix(in srgb,var(--panel2) 82%,var(--crystal))}
+.tile .gem{position:absolute;right:8px;top:8px;width:24px;height:24px}
+.pips{display:inline-flex;gap:3px}
+.pips i{width:10px;height:10px;background:var(--edge);display:block}
+.pips i.f{background:var(--accent);box-shadow:inset -2px -2px 0 rgba(0,0,0,.3)}
+.probe{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;margin-top:28px}
+.probe img{width:72px;height:72px}
+.foot{margin-top:32px;font-size:.85em;color:var(--ink2)}
+.foot a{color:inherit}
+.ground{height:56px;margin-top:24px;background-size:28px 28px;background-repeat:repeat-x;border-top:0;image-rendering:pixelated}
+
+/* Aufgabe */
+.lv-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+.lv-title{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+.lv-title h1{font-size:1.75rem}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:3px;background:var(--panel2);border:2px solid var(--edge);font-size:.85em;font-weight:500}
+.story{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start}
+.story .bix{width:64px;height:64px}
+.story .row{margin-top:12px}
+.stage{min-width:0}
+.stage-in{display:flex;flex-direction:column;gap:14px;align-items:stretch}
+.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.actions .grow{flex:1}
+.fb{border-width:4px}
+.fb.good{border-color:var(--ok)}
+.fb.bad{border-color:var(--bad)}
+.fb h2{font-size:1.4rem;margin-bottom:8px}
+.fb.good h2{color:var(--ok)}
+.fb.bad h2{color:var(--bad)}
+.pro{margin-top:14px;padding:14px;background:var(--panel2);border-radius:3px;border-left:8px solid var(--crystal)}
+.pro h3{font-size:1.1rem;margin-bottom:8px}
+.hintbox{border-style:dashed}
+
+/* Szenen und Raster */
+.scenes{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.scene{display:flex;flex-direction:column;align-items:center;gap:6px}
+.scene .lbl{font-weight:700;font-size:.9em}
+.bgrid{display:grid;gap:0;background:var(--cell);border:3px solid var(--edge2);position:relative}
+.bgrid .c{width:var(--cs,40px);height:var(--cs,40px);border-right:1px solid var(--cell-line);border-bottom:1px solid var(--cell-line);position:relative}
+.bgrid.flat .c{border:0}
+.bgrid .c.b{border-color:transparent}
+.groundrow{height:12px;background-size:12px 12px;image-rendering:pixelated}
+.cards{display:flex;flex-direction:column;gap:8px}
+.card{display:flex;align-items:center;gap:10px;padding:8px 8px 8px 12px;border:3px solid var(--edge2);border-radius:3px;background:var(--panel2);box-shadow:inset -3px -3px 0 var(--shade),inset 3px 3px 0 var(--light);text-align:left;width:100%}
+.card .k{font-family:var(--f-pix);font-weight:700;min-width:28px;height:28px;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink);border-radius:2px}
+.card .tx{flex:1;min-width:0}
+.card.used{opacity:.45}
+.cardmain{flex:1;display:flex;align-items:center;gap:10px;background:none;border:0;padding:4px 0;text-align:left;min-width:0;line-height:1.45}
+.plan .card{border-style:solid;background:color-mix(in srgb,var(--panel2) 80%,var(--go))}
+.plan .card .k{background:var(--go);color:#fff}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cols2 > *{min-width:0}
+.boxlbl{font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.empty{padding:12px;border:3px dashed var(--edge);border-radius:3px;color:var(--ink2);font-size:.9em}
+
+/* Programm-Chips */
+.prog{display:flex;flex-wrap:wrap;gap:6px;min-height:52px;padding:8px;border:3px dashed var(--edge);border-radius:3px;background:var(--cell)}
+.cmd{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border:2px solid var(--edge2);border-radius:3px;background:var(--panel);font-size:.9em;font-weight:500}
+.cmd small{font-family:var(--f-pix);color:var(--ink2)}
+.cmd.now{background:var(--accent);color:var(--accent-ink)}
+.cmd svg{width:18px;height:18px}
+.kubo{position:absolute;transition:left .28s,top .28s,transform .28s;will-change:transform;pointer-events:none;z-index:3}
+.trail{position:absolute;inset:30%;background:var(--accent);opacity:.55;border-radius:2px}
+.loopbox{border:4px solid var(--accent);border-radius:4px;padding:10px;background:var(--panel2)}
+.loophead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:700;margin-bottom:8px}
+.stepper{display:inline-flex;align-items:center;gap:4px}
+.stepper output{min-width:36px;text-align:center;font-family:var(--f-pix);font-size:1.5rem}
+
+/* Lampen */
+.lamps{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.lamp{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;padding:4px}
+.lamp .b{width:60px;height:60px;border:3px solid var(--edge2)}
+.lamp.on .b{box-shadow:0 0 18px 4px #FFD54A}
+.lamp .v{font-family:var(--f-pix);font-weight:700;font-size:1.3rem}
+.lamp .st{font-size:.8em;color:var(--ink2)}
+.bignum{font-family:var(--f-pix);font-weight:700;font-size:2.4rem;line-height:1}
+.target{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+
+/* Paint-Raster mit Codes */
+.rle{display:grid;grid-template-columns:auto auto;gap:0 10px;justify-content:center;align-items:center}
+.rle .code{font-family:var(--f-pix);font-weight:700;font-size:1.15rem;text-align:right;white-space:nowrap;display:flex;align-items:center;gap:6px;justify-content:flex-end;height:var(--cs,36px)}
+.rle .code .say{width:32px;height:32px}
+.rle .code .say svg{width:16px;height:16px}
+.paint{display:grid;border:3px solid var(--edge2);background:var(--cell)}
+.paint button{width:var(--cs,36px);height:var(--cs,36px);border:0;border-right:1px solid var(--cell-line);border-bottom:1px solid var(--cell-line);padding:0;background-color:transparent}
+.paint button.sel{outline:3px solid var(--focus);outline-offset:-3px;z-index:2;position:relative}
+.counts{font-family:var(--f-pix);font-weight:700;display:grid;place-items:center;font-size:1.05rem}
+
+/* Truhen, Bäume */
+.chests{display:flex;gap:8px;justify-content:center;flex-wrap:nowrap}
+.chest{flex:1 1 0;max-width:120px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 4px;border:3px solid var(--edge2);border-radius:3px;background:var(--panel2);box-shadow:inset -3px -3px 0 var(--shade),inset 3px 3px 0 var(--light)}
+.chest .b{width:48px;height:48px}
+.chest .it{display:flex;align-items:center;gap:4px;font-family:var(--f-pix);font-weight:700;font-size:1.25rem;line-height:1}
+.chest .it img{width:20px;height:20px}
+.chest.sel{border-color:var(--focus);background:var(--accent);color:var(--accent-ink);transform:translateY(-6px)}
+.lr{display:flex;justify-content:space-between;font-size:.85em;color:var(--ink2);font-weight:500}
+.trees{display:flex;gap:4px;justify-content:center;align-items:flex-end;flex-wrap:nowrap;padding-top:8px}
+.tree{flex:1 1 0;max-width:56px;min-width:0;display:flex;flex-direction:column;align-items:center;background:none;border:3px solid transparent;border-radius:3px;padding:2px 0 4px}
+.tree .lv{width:100%;aspect-ratio:1/1;max-width:100%}
+.tree .tr{width:44%;}
+.tree .n{font-family:var(--f-pix);font-weight:700;font-size:1.2rem;margin-top:4px}
+.tree.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 25%,transparent)}
+.tree .o{font-family:var(--f-pix);font-size:.85rem;min-height:1.2em;color:var(--ink2)}
+.sum{font-family:var(--f-pix);font-weight:700;font-size:1.4rem;text-align:center}
+
+/* Entscheidungsbaum */
+.dtable{width:100%;border-collapse:collapse;font-size:.92em}
+.dtable th,.dtable td{border:2px solid var(--edge);padding:4px 8px;text-align:left;vertical-align:middle}
+.dtable th{background:var(--panel2)}
+.dtable td .b{width:26px;height:26px;display:inline-block;vertical-align:middle;margin-right:6px}
+.tblwrap{overflow-x:auto}
+.dt{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0}
+.dq{padding:6px 10px;border:3px solid var(--edge2);background:var(--panel2);border-radius:3px;font-weight:700;text-align:center;font-size:.92em;line-height:1.3;display:flex;align-items:center;gap:6px}
+.dq .say{width:30px;height:30px}
+.dq .say svg{width:15px;height:15px}
+.dbr{display:flex;gap:6px;justify-content:center;width:100%;margin-top:0}
+.dbr > .arm{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center}
+.arm .yn{font-size:.8em;font-weight:700;padding:0 6px;border-radius:2px;margin:2px 0}
+.arm .yn.ja{color:var(--ok)}
+.arm .yn.nein{color:var(--bad)}
+.arm .ln{width:3px;height:12px;background:var(--edge2)}
+.leaf{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px;min-width:62px;border:3px dashed var(--edge2);border-radius:3px;background:var(--cell);font-size:.8em;font-weight:500}
+.leaf .b,.leaf .ph{width:34px;height:34px}
+.leaf .ph{display:grid;place-items:center;font-family:var(--f-pix);font-size:1.3rem;color:var(--ink2)}
+.leaf.filled{border-style:solid}
+.palette{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pal{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 8px;border:3px solid var(--edge2);border-radius:3px;background:var(--panel2);font-size:.85em;font-weight:500;min-width:72px}
+.pal .b,.pal img{width:34px;height:34px}
+.pal.sel{background:var(--accent);color:var(--accent-ink);border-color:var(--focus)}
+.pal.used{opacity:.5}
+
+/* SVG-Bühnen */
+.svgbox{width:100%;max-width:520px;margin:0 auto;display:block}
+.svgbox text{font-family:var(--f-body);fill:var(--ink)}
+.svgbox .lbl{font-size:15px;font-weight:700}
+.svgbox .num{font-family:var(--f-pix);font-weight:700}
+.svgbox [role=button]{cursor:pointer}
+.svgbox [role=button]:focus{outline:none}
+.svgbox [role=button]:focus-visible .ring{stroke:var(--focus);stroke-width:4}
+.opt{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.opt .btn[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--focus)}
+.mini{display:grid;grid-template-columns:repeat(5,1fr);width:90px;height:90px;border:3px solid var(--edge2);background:#F2F2F2}
+.mini i{display:block}
+.mini i.d{background:#2B2B2B}
+.panes{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.pane .c.d{background:rgba(30,34,40,.88)!important}
+.pane .c.l{background:rgba(205,238,248,.55)}
+.pane .c.x{box-shadow:inset 0 0 0 4px var(--accent)}
+.flood .c{display:grid;place-items:center}
+.flood .c > span{font-family:var(--f-pix);font-weight:700;font-size:.95rem;color:#fff;text-shadow:1px 1px 0 #000;position:relative;z-index:2}
+.flood .c.wet::after{content:"";position:absolute;inset:0;background:rgba(40,110,220,.62);z-index:1}
+.hut{position:absolute;inset:0;border:0;padding:0;background:transparent;display:block;z-index:2}
+.hut img{width:100%;height:100%}
+.hut .hn{position:absolute;right:-2px;top:-6px;background:var(--accent);color:var(--accent-ink);font-family:var(--f-pix);font-weight:700;font-size:.85rem;min-width:20px;height:20px;line-height:20px;text-align:center;border-radius:2px;z-index:3}
+.hut.sel{outline:4px solid var(--focus);outline-offset:-2px;z-index:4}
+.timer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--f-pix);font-weight:700;font-size:1.3rem}
+.bar{flex:1;min-width:120px;height:14px;background:var(--cell);border:3px solid var(--edge2)}
+.bar i{display:block;height:100%;background:var(--go)}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dots button{width:36px;height:36px;border:3px solid var(--edge2);background:var(--panel2);font-family:var(--f-pix);font-weight:700;border-radius:3px;padding:0}
+.dots button.cur{background:var(--accent);color:var(--accent-ink)}
+.dots button.ans{box-shadow:inset 0 -6px 0 var(--go)}
+.res{display:grid;grid-template-columns:auto 1fr auto;gap:6px 12px;align-items:center}
+.res .ok{color:var(--ok);font-weight:700}
+.res .no{color:var(--bad);font-weight:700}
+
+/* Einstellungen */
+.sheet{margin-top:12px}
+.set{display:grid;grid-template-columns:minmax(140px,220px) 1fr;gap:10px 16px;align-items:center}
+.seg{display:inline-flex;flex-wrap:wrap;gap:6px}
+.seg button{min-height:42px;padding:4px 12px;border:3px solid var(--edge2);background:var(--panel2);border-radius:3px}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.sw{display:inline-flex;align-items:center;gap:10px}
+.sw input{width:26px;height:26px;accent-color:var(--go)}
+select{min-height:44px;max-width:100%;padding:4px 8px;border:3px solid var(--edge2);background:var(--panel2);border-radius:3px}
+.note{font-size:.88em;color:var(--ink2)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:10px 16px;border-radius:4px;z-index:50;max-width:calc(100% - 32px);font-weight:500}
+.fx{position:fixed;inset:0;pointer-events:none;z-index:40;overflow:hidden}
+.fx img{position:absolute;top:-40px;width:28px;height:28px;animation:fall 1.6s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(260deg)}}
+.tips li{margin-bottom:.5em}
+.tips ul{padding-left:1.2em;margin:.4em 0 0}
+.links a{color:var(--crystal);font-weight:700;overflow-wrap:anywhere}
+
+@media (max-width:560px){
+  .cols2{grid-template-columns:1fr}
+  .hero{grid-template-columns:1fr}
+  .hero .bix{width:72px;height:72px}
+  .story{grid-template-columns:1fr}
+  .story .bix{width:48px;height:48px}
+  .set{grid-template-columns:1fr}
+  .lv-title h1{font-size:1.45rem}
+  .brand span{font-size:1.1rem}
+  .tile{min-height:80px}
+}
+@media (prefers-reduced-motion: reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <button class="brand" id="home-btn" type="button" aria-label="Zur Weltkarte"><img id="logo" class="px" alt=""><span>Biber-Blockwelt</span></button>
+  <span class="top-sp"></span>
+  <span class="gems" id="gems" title="Gesammelte Kristalle"><img id="gem-ico" class="px" alt=""><span id="gem-n">0</span><span class="muted">/ 15</span></span>
+  <button class="btn small" id="btn-tips" type="button">Tipps</button>
+  <button class="btn small" id="btn-set" type="button" aria-expanded="false" aria-controls="sheet">Lesen &amp; Hören</button>
+</div></header>
+<div class="wrap">
+  <section id="sheet" class="panel sheet" hidden aria-label="Lesen und Hören"></section>
+  <main id="view"></main>
+</div>
+<div class="fx" id="fx" aria-hidden="true"></div>
+<script>
+(function(){
+'use strict';
+document.documentElement.lang = 'de';
+const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const sleep = ms => new Promise(r => setTimeout(r, RM ? Math.min(ms, 60) : ms));
+const $ = (s, r) => (r || document).querySelector(s);
+
+/* ---------- DOM-Helfer ---------- */
+function h(tag, a, ...kids){
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(a || {})){
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+    else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
+    else if (k === 'html') el.innerHTML = v;
+    else if (k === 'text') el.textContent = v;
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat(3)){ if (kid == null || kid === false) continue; el.append(kid.nodeType ? kid : document.createTextNode(String(kid))); }
+  return el;
+}
+const SVGNS = 'http://www.w3.org/2000/svg';
+function sv(tag, a, ...kids){
+  const el = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(a || {})){
+    if (v == null || v === false) continue;
+    if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
+    else if (k === 'text') el.textContent = v;
+    else el.setAttribute(k, v);
+  }
+  for (const kid of kids.flat(3)){ if (kid == null || kid === false) continue; el.append(kid.nodeType ? kid : document.createTextNode(String(kid))); }
+  return el;
+}
+function svgBtn(g, label, fn){
+  g.setAttribute('role','button'); g.setAttribute('tabindex','0'); g.setAttribute('aria-label', label);
+  g.addEventListener('click', fn);
+  g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fn(e); } });
+  return g;
+}
+
+/* ---------- Pixel-Icons ---------- */
+function pixIcon(rows){
+  let r = '';
+  rows.forEach((row, y) => { for (let x = 0; x < row.length; x++) if (row[x] === '#') r += `<rect x="${x}" y="${y}" width="1.05" height="1.05"/>`; });
+  return `<svg viewBox="0 0 ${rows[0].length} ${rows.length}" aria-hidden="true" fill="currentColor" shape-rendering="crispEdges">${r}</svg>`;
+}
+const ICON = {
+  speaker: pixIcon([".....#......","....##...#..","...###....#.","######.#..#.","######..#.#.","######..#.#.","######.#..#.","...###....#.","....##...#..",".....#......"]),
+  stop: pixIcon(["..........",".########.",".########.",".########.",".########.",".########.",".########.",".########.",".########.",".........."]),
+  up: pixIcon(["....##....","...####...","..######..",".########.","....##....","....##....","....##....","....##....","....##....","....##...."]),
+  left: pixIcon(["..#.......",".##.......","#######...",".##...##..","..#....##.",".......##.",".......##.",".......##.",".......##.",".......##."]),
+  right: pixIcon([".......#..",".......##.","...#######","..##...##.",".##....#..",".##.......",".##.......",".##.......",".##.......",".##......."]),
+  back: pixIcon(["...#......","..##......",".#########","##########",".#########","..##......","...#......"]),
+  bulb: pixIcon(["...####...","..######..",".########.",".########.",".########.","..######..","...####...","..........","...####...","....##...."]),
+  reset: pixIcon(["..#####...",".#.....#..","#.......#.","#......###","#.......#.","#.........",".#.....#..","..#####..."]),
+  place: pixIcon(["##########","#........#","#.######.#","#.######.#","#.######.#","#.######.#","#........#","##########"]),
+  check: pixIcon(["........##",".......##.","......##..","##...##...",".##.##....","..###.....","...#......"])
+};
+
+/* ---------- Texturen (eigene, prozedural erzeugt) ---------- */
+function mkRand(seed){ let s = (seed >>> 0) || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
+function strSeed(str){ let x = 2166136261; for (const c of str){ x ^= c.charCodeAt(0); x = Math.imul(x, 16777619); } return x >>> 0; }
+function upscale(small, n){ const big = document.createElement('canvas'); big.width = big.height = n * 4; const b = big.getContext('2d'); b.imageSmoothingEnabled = false; b.drawImage(small, 0, 0, n * 4, n * 4); return big.toDataURL(); }
+function texture(type){
+  const N = 16, cv = document.createElement('canvas'); cv.width = cv.height = N; const c = cv.getContext('2d'); const r = mkRand(strSeed(type));
+  const P = (x, y, col) => { c.fillStyle = col; c.fillRect(x, y, 1, 1); };
+  const pick = a => a[Math.floor(r() * a.length)];
+  const fill = pal => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) P(x, y, pick(pal)); };
+  const border = (col) => { for (let i = 0; i < N; i++){ P(i, 0, col); P(i, N-1, col); P(0, i, col); P(N-1, i, col); } };
+  const G = ['#5DA93C','#4E9632','#6DBB46','#57A238'], D = ['#8A5A34','#7A4E2C','#9B6A3F','#6E4527'], S = ['#8E8F94','#86878C','#9C9DA2','#7D7E83'];
+  switch (type){
+    case 'grass': for (let x = 0; x < N; x++){ const d = 3 + (r() < .5 ? 1 : 0) + (r() < .25 ? 1 : 0); for (let y = 0; y < N; y++) P(x, y, y < d ? pick(G) : pick(D)); } break;
+    case 'snowSide': for (let x = 0; x < N; x++){ const d = 3 + (r() < .5 ? 1 : 0) + (r() < .3 ? 1 : 0); for (let y = 0; y < N; y++) P(x, y, y < d ? pick(['#F4F8FB','#E6EEF4','#FFFFFF']) : pick(S)); } break;
+    case 'grassTop': fill(['#5DA93C','#4E9632','#6DBB46','#57A238','#4A8F2F']); break;
+    case 'dirt': fill(D); break;
+    case 'stone': fill(S); for (let i = 0; i < 7; i++){ const x = Math.floor(r()*14), y = Math.floor(r()*14); P(x, y, '#6B6C71'); P(x+1, y, '#6B6C71'); } break;
+    case 'bricks': fill(['#8A8B90','#93949A']); for (let y = 0; y < N; y++) for (let x = 0; x < N; x++){ if (y % 4 === 3) P(x, y, '#5E5F64'); const off = (Math.floor(y/4) % 2) ? 4 : 0; if ((x + off) % 8 === 7 && y % 4 !== 3) P(x, y, '#5E5F64'); } break;
+    case 'coal': fill(S); for (let i = 0; i < 5; i++){ const x = 1 + Math.floor(r()*12), y = 1 + Math.floor(r()*12); [[0,0],[1,0],[0,1],[1,1],[2,1]].forEach(([dx,dy]) => P(x+dx, y+dy, pick(['#1B1B1D','#2A2A2E']))); } break;
+    case 'crystalOre': fill(S); for (let i = 0; i < 4; i++){ const x = 1 + Math.floor(r()*12), y = 1 + Math.floor(r()*12); [[0,0],[1,0],[0,1],[1,1]].forEach(([dx,dy]) => P(x+dx, y+dy, pick(['#4FD3E3','#2BB5C8','#B8F3FA']))); } break;
+    case 'log': for (let x = 0; x < N; x++){ const base = pick(['#6B4A2B','#5A3D22','#7C5833']); for (let y = 0; y < N; y++) P(x, y, r() < .18 ? '#4A321C' : base); } break;
+    case 'planks': for (let y = 0; y < N; y++){ const row = Math.floor(y/4); for (let x = 0; x < N; x++){ let col = pick(['#C29A5B','#B88F50','#CDA567']); if (y % 4 === 3) col = '#8C6A35'; const seam = (row % 2) ? 4 : 11; if (x === seam && y % 4 !== 3) col = '#9C7840'; P(x, y, col); } } break;
+    case 'glass': c.fillStyle = 'rgba(190,232,245,0.5)'; c.fillRect(0, 0, N, N); border('#E9F8FC'); [[3,3],[4,4],[5,5],[3,4],[10,9],[11,10],[12,11]].forEach(([x,y]) => P(x, y, '#FFFFFF')); break;
+    case 'water': fill(['#2F6FD6','#3A7EE0','#2A62C2','#3474DA']); for (let y = 2; y < N; y += 5) for (let x = 0; x < N; x++) if ((x + y) % 6 < 3) P(x, y, '#6FA6EE'); break;
+    case 'leaves': fill(['#2F7A2B','#3D8F35','#256A22','#348231']); for (let i = 0; i < 10; i++) P(Math.floor(r()*N), Math.floor(r()*N), '#1D4F1A'); break;
+    case 'sand': fill(['#E3D39A','#D8C78B','#EADDA8','#DDCD92']); break;
+    case 'snow': fill(['#F4F8FB','#E6EEF4','#FFFFFF','#EEF3F8']); break;
+    case 'crystal': fill(['#56D6E4','#3BC0D1','#6FE0EC']); border('#1F8FA0'); [[3,3],[4,3],[3,4],[11,10],[12,11],[7,7]].forEach(([x,y]) => P(x, y, '#E6FCFF')); break;
+    case 'gold': fill(['#F5C542','#E8B22A','#FFD45A']); border('#B9861A'); [[3,3],[4,3],[3,4],[11,11]].forEach(([x,y]) => P(x, y, '#FFF2B8')); break;
+    case 'chest': fill(['#9B6A35','#8E602F','#A57340']); border('#4A2F12'); for (let x = 1; x < N-1; x++) P(x, 5, '#4A2F12'); [[7,4],[8,4],[7,5],[8,5],[7,6],[8,6]].forEach(([x,y]) => P(x, y, '#C9C9C9')); P(7,6,'#7A7A7A'); break;
+    case 'lampOff': fill(['#4A3B2A','#3F3223']); for (let y = 2; y < 14; y++) for (let x = 2; x < 14; x++) if ((x % 4) && (y % 4)) P(x, y, pick(['#6B5A3A','#5E4F33'])); border('#2A2118'); break;
+    case 'lampOn': fill(['#FFD35A','#FFE27A','#FFC93C']); for (let y = 2; y < 14; y++) for (let x = 2; x < 14; x++) if ((x % 4) && (y % 4)) P(x, y, pick(['#FFF4C2','#FFF9DD'])); border('#B07A10'); break;
+    case 'farmland': fill(['#5B3A1F','#4E3119','#674325']); for (let y = 1; y < N; y += 4) for (let x = 0; x < N; x++) P(x, y, '#3E2612'); break;
+    case 'rail': fill(['#8A8B90','#7D7E83']); break;
+  }
+  return upscale(cv, N);
+}
+function sprite(rows, pal){
+  const H = rows.length, W = rows[0].length, n = Math.max(W, H);
+  const cv = document.createElement('canvas'); cv.width = cv.height = n; const c = cv.getContext('2d');
+  const ox = Math.floor((n - W) / 2), oy = Math.floor((n - H) / 2);
+  rows.forEach((row, y) => { for (let x = 0; x < W; x++){ const ch = row[x]; if (ch === '.' || ch === ' ' || !pal[ch]) continue; c.fillStyle = pal[ch]; c.fillRect(ox + x, oy + y, 1, 1); } });
+  return upscale(cv, n);
+}
+const TEX = {};
+['grass','snowSide','grassTop','dirt','stone','bricks','coal','crystalOre','log','planks','glass','water','leaves','sand','snow','crystal','gold','chest','lampOff','lampOn','farmland','rail'].forEach(t => TEX[t] = texture(t));
+TEX.bix = sprite([
+  "....dd....dd....","...dbbd..dbbd...","...dbbbddbbbd...","..dbbbbbbbbbbd..","..dbbbbbbbbbbd..","..dbkkbbbbkkbd..","..dbkwbbbbkwbd..","..dbbbbbbbbbbd..",
+  "..dbbllllllbbd..","..dbllnnnnllbd..","..dblllnnlllbd..","..dbllllllllbd..","...dbllwwllbd...","...dbblwwlbbd...","....ddbbbbdd....","......dddd......"
+], {d:'#4A2E17', b:'#8B5A2B', l:'#D9AE7E', n:'#2B1A0E', k:'#141414', w:'#FFFFFF'});
+TEX.kubo = sprite([
+  "..aaaaaaaa..",".abbbbbbbba.","abeebbbbeeba","abeebbbbeeba","abbbbbbbbbba","abbbccccbbba",
+  "abbbccccbbba","abbbbbbbbbba","abbbbbbbbbba","abddbbbbddba",".abbbbbbbba.","..aaaaaaaa.."
+], {a:'#1F2A3A', b:'#7FA7C9', e:'#FFE066', c:'#4D7EA8', d:'#2E4A66'});
+TEX.torch = sprite([
+  "................","................","................",".......yy.......","......yOOy......","......yOOy......",".......OO.......",".......bb.......",
+  ".......bb.......",".......bb.......",".......bb.......",".......bb.......",".......bb.......",".......bb.......",".......bb.......","................"
+], {y:'#FFE680', O:'#F59A1B', b:'#6B4A2B'});
+TEX.hut = sprite([
+  ".....rr.....","....rRRr....","...rRRRRr...","..rRRRRRRr..",".rRRRRRRRRr.","rrrrrrrrrrrr",
+  ".pppppppppp.",".pddppppggp.",".pddppppggp.",".pddppppppp.",".pddppppppp.",".ssssssssss."
+], {r:'#7A2E22', R:'#B8432F', p:'#C9A06A', d:'#5A3A1E', g:'#9FD9F0', s:'#6B6B6B'});
+TEX.gem = sprite(["...cc...","..cWcc..",".cWcccc.","cWcccccc","cccccccC",".ccccCC.","..ccCC..","...CC..."], {c:'#4FD3E3', W:'#E6FCFF', C:'#1F8FA0'});
+TEX.ingot = sprite(["........","..yyyy..",".yWyyyy.","yWyyyyyO","yyyyyyOO",".OOOOOO.","........","........"], {y:'#F5C542', W:'#FFF2B8', O:'#B9861A'});
+TEX.cart = sprite([
+  "............","gggggggggggg","gGGGGGGGGGGg","gGhhhhhhhhGg","gGhhhhhhhhGg","gGGGGGGGGGGg","gggggggggggg",".kk......kk.",".kk......kk.","............"
+], {g:'#4C4F56', G:'#7A7E87', h:'#5E6168', k:'#1E1E22'});
+TEX.weizen = sprite(["..y.y.y...",".yy.y.yy..","..y.y.y...",".yy.y.yy..","..y.y.y...","..g.g.g...","..g.g.g...","...ggg....","....g.....",".........."], {y:'#E8C547', g:'#7FA33A'});
+TEX.karotte = sprite(["....gg....","...g..g...","....gg....","...oooo...","...oOoo...","....ooo...","....oo....","....oO....",".....o....",".........."], {g:'#4E9A33', o:'#F08A24', O:'#C9661A'});
+TEX.kohl = sprite(["..........","...gggg...","..gGggGg..",".gGgGGgGg.",".ggGggGgg.",".gGgGGgGg.","..gGggGg..","...gggg...","..........",".........."], {g:'#7CC25A', G:'#3F8A2A'});
+TEX.ruebe = sprite(["...g..g...","....gg....","....gg....","...mmmm...","..mMmmmm..","..mmmmMm..","...mmmm...","....mm....",".....m....",".........."], {g:'#4E9A33', m:'#9B2D6E', M:'#D25A9E'});
+const url = t => `url(${TEX[t]})`;
+function blk(type, cls){ const el = h('div', {class: 'b ' + (cls || '')}); if (type) el.style.backgroundImage = url(type); return el; }
+function img(type, cls, alt){ return h('img', {src: TEX[type], class: 'px ' + (cls || ''), alt: alt || ''}); }
+
+/* ---------- Speicher ---------- */
+const KEY = 'biber-blockwelt-v1';
+const store = { solved: {}, settings: { auto: true, rate: 0.9, voice: '', scale: 1, sound: true }, probe: null };
+try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d){ Object.assign(store.solved, d.solved || {}); Object.assign(store.settings, d.settings || {}); store.probe = d.probe || null; } } catch (e) {}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+function applyScale(){ document.documentElement.style.setProperty('--scale', store.settings.scale); }
+applyScale();
+
+/* ---------- Vorlesen ---------- */
+function sent(text){
+  const s = h('span', {class: 's', 'data-say': text});
+  let i = 0;
+  for (const part of text.split(/(\s+)/)){
+    if (!part) continue;
+    if (/^\s+$/.test(part)) s.append(part); else s.append(h('span', {class: 'w', 'data-i': i}, part));
+    i += part.length;
+  }
+  return s;
+}
+function para(list, cls){ const p = h('p', {class: cls || null}); (Array.isArray(list) ? list : [list]).forEach((t, k) => { if (k) p.append(' '); p.append(sent(t)); }); return p; }
+const Reader = {
+  ok: ('speechSynthesis' in window) && typeof window.SpeechSynthesisUtterance !== 'undefined',
+  voices: [], voice: null, btn: null, ses: 0, utts: [],
+  init(){
+    if (!this.ok) return;
+    const load = () => { try { this.voices = speechSynthesis.getVoices().filter(v => /^de([-_]|$)/i.test(v.lang)); } catch (e) { this.voices = []; } this.pick(); if (typeof renderVoices === 'function') renderVoices(); };
+    load();
+    try { speechSynthesis.addEventListener('voiceschanged', load); } catch (e) { speechSynthesis.onvoiceschanged = load; }
+  },
+  pick(){
+    const want = store.settings.voice; let v = this.voices.find(x => x.voiceURI === want);
+    if (!v){ for (const p of [/Anna/i,/Petra/i,/Helena/i,/Katja/i,/Marlene/i,/Vicki/i,/Google Deutsch/i,/Hedda/i]){ v = this.voices.find(x => p.test(x.name)); if (v) break; } }
+    if (!v) v = this.voices.find(x => /de[-_]DE/i.test(x.lang)) || this.voices[0] || null;
+    this.voice = v;
+  },
+  items(list){
+    return list.flatMap(x => {
+      if (typeof x === 'string') return [{text: x}];
+      if (x && x.classList && x.classList.contains('s')) return [{text: x.dataset.say, el: x}];
+      if (x && x.querySelectorAll){ const ss = [...x.querySelectorAll('.s')]; if (ss.length) return ss.map(s => ({text: s.dataset.say, el: s})); return [{text: x.dataset.say || x.textContent.trim(), el: x, whole: true}]; }
+      return [];
+    }).filter(i => i.text);
+  },
+  read(list, btn){
+    this.stop();
+    if (!this.ok){ toast('Vorlesen geht in diesem Browser leider nicht. Probiere Chrome, Edge oder Safari.'); return; }
+    const items = this.items(list); if (!items.length) return;
+    const ses = ++this.ses;
+    if (btn){ this.btn = btn; setReadBtn(btn, true); }
+    try { speechSynthesis.resume(); } catch (e) {}
+    this.utts = items.map((it, idx) => {
+      const u = new SpeechSynthesisUtterance(it.text);
+      u.lang = (this.voice && this.voice.lang) || 'de-DE'; if (this.voice) u.voice = this.voice;
+      u.rate = store.settings.rate; u.pitch = 1;
+      u.onstart = () => { if (ses !== this.ses) return; this.clear(); if (it.el){ it.el.classList.add(it.whole ? 'reading-el' : 'reading'); } };
+      u.onboundary = e => { if (ses !== this.ses || !it.el || it.whole) return; if (e.name && e.name !== 'word') return; this.word(it.el, e.charIndex); };
+      const end = () => { if (ses !== this.ses) return; if (it.el){ it.el.classList.remove('reading', 'reading-el'); it.el.querySelectorAll('.w.now').forEach(w => w.classList.remove('now')); } if (idx === items.length - 1) this.done(); };
+      u.onend = end; u.onerror = end;
+      return u;
+    });
+    this.utts.forEach(u => speechSynthesis.speak(u));
+  },
+  word(el, ci){ const ws = el.querySelectorAll('.w'); let hit = null; for (const w of ws){ if (+w.dataset.i <= ci) hit = w; else break; } ws.forEach(w => w.classList.toggle('now', w === hit)); },
+  clear(){ document.querySelectorAll('.reading,.reading-el').forEach(e => e.classList.remove('reading', 'reading-el')); document.querySelectorAll('.w.now').forEach(w => w.classList.remove('now')); },
+  done(){ this.clear(); if (this.btn){ setReadBtn(this.btn, false); this.btn = null; } },
+  stop(){ this.ses++; if (this.ok){ try { speechSynthesis.cancel(); } catch (e) {} } this.done(); }
+};
+function setReadBtn(b, on){
+  b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  if (b.classList.contains('say')) b.innerHTML = on ? ICON.stop : ICON.speaker;
+  else b.innerHTML = (on ? ICON.stop : ICON.speaker) + `<span>${on ? 'Stopp' : b.dataset.label}</span>`;
+}
+function readBtn(getList, label){
+  const b = h('button', {class: 'btn', type: 'button', 'data-label': label || 'Vorlesen'}); setReadBtn(b, false);
+  b.addEventListener('click', () => { if (Reader.btn === b){ Reader.stop(); return; } Reader.read(getList(), b); });
+  return b;
+}
+function sayBtn(text, el){
+  const b = h('button', {class: 'say', type: 'button', 'aria-label': 'Vorlesen: ' + text}); setReadBtn(b, false);
+  b.addEventListener('click', e => { e.stopPropagation(); if (Reader.btn === b){ Reader.stop(); return; } if (el) el.dataset.say = el.dataset.say || text; Reader.read([el || text], b); });
+  return b;
+}
+document.addEventListener('click', e => {
+  const s = e.target.closest && e.target.closest('.readable .s');
+  if (!s || e.target.closest('button')) return;
+  Reader.read([s], null);
+});
+
+/* ---------- Kleinkram ---------- */
+function toast(msg){ const t = h('div', {class: 'toast', role: 'status'}, msg); document.body.append(t); setTimeout(() => t.remove(), 3200); }
+let actx = null;
+function chime(){
+  if (!store.settings.sound) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    [523, 784, 1047].forEach((f, i) => { const o = actx.createOscillator(), g = actx.createGain(); o.type = 'square'; o.frequency.value = f; g.gain.value = 0.045; o.connect(g); g.connect(actx.destination); const t = actx.currentTime + i * 0.09; o.start(t); g.gain.setValueAtTime(0.045, t); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.16); o.stop(t + 0.18); });
+  } catch (e) {}
+}
+function celebrate(){
+  if (RM) return; const fx = $('#fx');
+  for (let i = 0; i < 16; i++){ const g = img('gem'); g.style.left = (Math.random() * 96) + 'vw'; g.style.animationDelay = (Math.random() * 0.5) + 's'; g.style.animationDuration = (1.2 + Math.random() * 0.8) + 's'; fx.append(g); setTimeout(() => g.remove(), 2600); }
+}
+function plural(n, one, many){ return n + ' ' + (n === 1 ? one : many); }
+function scene(W, H, cs, cells){ // cells: (x,y) -> type ; y=0 unten
+  const g = h('div', {class: 'bgrid', style: `grid-template-columns:repeat(${W},auto);--cs:${cs}`});
+  for (let y = H - 1; y >= 0; y--) for (let x = 0; x < W; x++){ const t = cells(x, y); const c = h('div', {class: 'c'}); if (t){ c.classList.add('b'); c.style.backgroundImage = url(t); } g.append(c); }
+  return g;
+}
+
+/* =========================================================
+   AUFGABEN
+   ========================================================= */
+const BIOMES = [
+  {k: 'wiese', name: 'Wiese', topic: 'Befehle und Programme', band: 'grass', tile: 'grassTop'},
+  {k: 'hoehle', name: 'Höhle', topic: 'Codes und Geheimnisse', band: 'crystalOre', tile: 'stone'},
+  {k: 'wald', name: 'Wald', topic: 'Sortieren und Entscheiden', band: 'leaves', tile: 'log'},
+  {k: 'berge', name: 'Berge', topic: 'Logik und Wege', band: 'snowSide', tile: 'bricks'}
+];
+const DIFF = ['', 'leicht', 'mittel', 'schwer'];
+
+const LEVELS = [];
+
+/* 1 — Der Bauplan (Sequenz) */
+LEVELS.push({ id: 1, biome: 'wiese', diff: 1, topic: 'Reihenfolge', title: 'Der Bauplan',
+  story: ['Bix will eine kleine Hütte bauen.', 'Er hat sechs Bau-Befehle.', 'Jeder Befehl wird sofort ausgeführt, einer nach dem anderen.'],
+  question: 'In welcher Reihenfolge muss Bix die Befehle geben, damit die Hütte so aussieht wie auf dem Bild?',
+  hint: 'Fang unten an. Frag dich bei jedem Befehl: Was muss schon da sein, damit er klappt?',
+  explain: ['Ein Computer führt Befehle genau in der Reihenfolge aus, in der sie kommen. Das nennt man eine Sequenz.', 'Manche Befehle hängen von anderen ab: Das Dach braucht zuerst die Säulen.', 'Das Fenster kannst du vor oder nach dem Dach setzen. Beides ist richtig.', 'Beim Biber gibt es oft solche Bau-Aufgaben. Prüfe immer: Was muss vorher fertig sein?'],
+  build(st, api){
+    const W = 5, H = 6;
+    const CARDS = {
+      A: {t: 'Lege ein Dach aus 5 Brettern oben auf die zwei Holz-Säulen.', a: 'roof'},
+      B: {t: 'Lege 5 Steinblöcke nebeneinander auf den Boden.', a: 'stones'},
+      C: {t: 'Setze ein Glasfenster genau zwischen die oberen Holzstämme.', a: 'glass'},
+      D: {t: 'Stelle auf jeden Holzstamm noch einen Holzstamm.', a: 'logs2'},
+      E: {t: 'Stelle eine Fackel oben in die Mitte.', a: 'torch'},
+      F: {t: 'Stelle auf den linken und auf den rechten Stein je einen Holzstamm.', a: 'logs1'}
+    };
+    let plan = [];
+    function run(seq){
+      const S = new Map(); const g = (x, y) => S.get(x + ',' + y); const s = (x, y, t) => S.set(x + ',' + y, t);
+      const ht = x => { let m = 0; for (let y = 0; y < H + 2; y++) if (g(x, y)) m = y + 1; return m; };
+      const ACT = {
+        stones(){ for (let x = 0; x < W; x++) if (g(x, 0)) return 'Auf dem Boden liegt schon etwas.'; for (let x = 0; x < W; x++) s(x, 0, 'stone'); },
+        logs1(){ if (g(0, 0) !== 'stone' || g(4, 0) !== 'stone') return 'Es gibt noch keine Steine, auf die die Stämme können.'; if (ht(0) !== 1 || ht(4) !== 1) return 'Auf den äußeren Steinen steht schon etwas.'; s(0, 1, 'log'); s(4, 1, 'log'); },
+        logs2(){ const a = ht(0), b = ht(4); if (a < 2 || b < 2) return 'Es gibt noch keine Holzstämme.'; if (g(0, a-1) !== 'log' || g(4, b-1) !== 'log') return 'Oben auf den Stämmen liegt schon etwas.'; s(0, a, 'log'); s(4, b, 'log'); },
+        roof(){ const a = ht(0), b = ht(4); if (a < 2 || b < 2 || g(0, a-1) !== 'log' || g(4, b-1) !== 'log' || a !== b) return 'Es gibt noch keine zwei Holz-Säulen für das Dach.'; for (let x = 0; x < W; x++) if (g(x, a)) return 'Da ist ein Block im Weg.'; if (a >= H) return 'Das wird zu hoch.'; for (let x = 0; x < W; x++) s(x, a, 'planks'); },
+        torch(){ const c = ht(2); if (!c) return 'In der Mitte ist noch nichts, worauf die Fackel stehen kann.'; if (c >= H) return 'Das wird zu hoch.'; s(2, c, 'torch'); },
+        glass(){ if (g(0, 2) !== 'log' || g(4, 2) !== 'log') return 'Es gibt noch keine oberen Holzstämme.'; if (g(2, 2)) return 'Der Platz für das Fenster ist schon belegt.'; s(2, 2, 'glass'); }
+      };
+      const snaps = [];
+      for (let i = 0; i < seq.length; i++){ const err = ACT[CARDS[seq[i]].a](); if (err) return {S, snaps, err, i}; snaps.push(new Map(S)); }
+      return {S, snaps};
+    }
+    const target = run(['B','F','D','C','A','E']).S;
+    const same = (a, b) => a.size === b.size && [...a].every(([k, v]) => b.get(k) === v);
+    const cs = 'min(40px, calc((100vw - 90px) / 10))';
+    const ground = () => h('div', {class: 'groundrow', style: {backgroundImage: url('grass'), width: '100%'}});
+    const mine = h('div');
+    const drawMine = S => { mine.replaceChildren(scene(W, H, cs, (x, y) => S.get(x + ',' + y)), ground()); };
+    drawMine(new Map());
+    const scenes = h('div', {class: 'scenes'},
+      h('div', {class: 'scene'}, h('div', {class: 'lbl'}, 'So soll es aussehen'), h('div', {}, scene(W, H, cs, (x, y) => target.get(x + ',' + y)), ground())),
+      h('div', {class: 'scene'}, h('div', {class: 'lbl'}, 'Dein Bau'), mine));
+    const pool = h('div', {class: 'cards'}), planEl = h('div', {class: 'cards plan'});
+    function draw(){
+      pool.replaceChildren(...Object.keys(CARDS).map(k => {
+        const used = plan.includes(k); const tx = h('span', {class: 'tx'}, CARDS[k].t);
+        return h('div', {class: 'card' + (used ? ' used' : '')},
+          h('button', {class: 'cardmain', type: 'button', disabled: used, 'aria-label': `Befehl ${k} zum Plan: ${CARDS[k].t}`, onclick: () => { plan.push(k); draw(); drawMine(new Map()); }}, h('span', {class: 'k'}, k), tx),
+          sayBtn(CARDS[k].t, tx));
+      }));
+      if (!plan.length) planEl.replaceChildren(h('div', {class: 'empty'}, 'Tippe die Bau-Befehle in der richtigen Reihenfolge an.'));
+      else planEl.replaceChildren(...plan.map((k, i) => {
+        const tx = h('span', {class: 'tx'}, CARDS[k].t);
+        return h('div', {class: 'card'},
+          h('button', {class: 'cardmain', type: 'button', 'aria-label': `Schritt ${i + 1} entfernen: ${CARDS[k].t}`, onclick: () => { plan.splice(i, 1); draw(); drawMine(new Map()); }}, h('span', {class: 'k'}, i + 1), tx),
+          sayBtn(CARDS[k].t, tx));
+      }));
+    }
+    draw();
+    st.append(scenes, h('div', {class: 'cols2'},
+      h('div', {}, h('div', {class: 'boxlbl'}, 'Bau-Befehle'), pool),
+      h('div', {}, h('div', {class: 'boxlbl'}, 'Dein Plan ', h('span', {class: 'muted', style: 'font-weight:400;font-size:.85em'}, '(antippen zum Entfernen)')), planEl)));
+    return {
+      async check(o){
+        if (!plan.length) return {ok: false, msg: 'Tippe zuerst die Befehle in der richtigen Reihenfolge an.'};
+        const r = run(plan); const ok = !r.err && plan.length === 6 && same(r.S, target);
+        if (o && o.silent) return {ok};
+        drawMine(new Map());
+        for (const sn of r.snaps){ await sleep(420); drawMine(sn); }
+        if (r.err){ await sleep(300); return {ok: false, msg: `Befehl ${r.i + 1} geht nicht: ${r.err}`}; }
+        if (plan.length < 6) return {ok: false, msg: 'Es fehlen noch Befehle. Die Hütte ist noch nicht fertig.'};
+        if (!ok) return {ok: false, msg: 'Deine Hütte sieht anders aus als auf dem Bild. Vergleiche die beiden Bilder.'};
+        return {ok: true, msg: 'Die Hütte steht genau wie auf dem Bild.'};
+      },
+      solve(){ plan = ['B','F','D','C','A','E']; draw(); }
+    };
+  }
+});
+
+/* 2 — Die Treppe (Schleife) */
+LEVELS.push({ id: 2, biome: 'wiese', diff: 2, topic: 'Schleife', title: 'Die Treppe',
+  story: ['Kubo, der Block-Roboter, kann Blöcke setzen.', 'Er kennt drei Befehle: Setze Block, Rechts und Hoch.', 'Rechts heißt: ein Feld nach rechts gehen. Hoch heißt: ein Feld nach oben gehen.', 'Mit dem Wiederhole-Befehl macht Kubo alles darin mehrmals hintereinander.'],
+  question: 'Baue die Treppe vom Bild. In den Wiederhole-Befehl passen höchstens 4 Befehle.',
+  hint: 'Schau dir die Treppe genau an. Welches kleine Stück wiederholt sich immer wieder? Und wie oft?',
+  explain: ['Statt 16 Befehle hintereinander zu schreiben, schreibst du nur 4 Befehle und sagst: Wiederhole 4-mal.', 'Das nennt man eine Schleife.', 'Programmierer suchen immer nach Mustern, die sich wiederholen.', 'So werden Programme kürzer, und es passieren weniger Fehler.'],
+  build(st, api){
+    const W = 6, H = 5;
+    const TARGET = new Set(['0,0','1,0','1,1','2,1','2,2','3,2','3,3','4,3']);
+    let count = 2, body = [];
+    const NAMES = {S: 'Setze Block', R: 'Rechts', H: 'Hoch'};
+    const ICO = {S: ICON.place, R: ICON.up.replace('<svg ', '<svg style="transform:rotate(90deg)" '), H: ICON.up};
+    const cs = 'min(40px, calc((100vw - 90px) / 12))';
+    const tgt = scene(W, H, cs, (x, y) => TARGET.has(x + ',' + y) ? 'planks' : null);
+    const buildBox = h('div');
+    let kubo = null;
+    function drawBuild(placed, pos){
+      const g = scene(W, H, cs, (x, y) => placed.has(x + ',' + y) ? 'planks' : null);
+      g.style.position = 'relative';
+      if (pos && pos.x < W && pos.y < H){ kubo = img('kubo', 'kubo'); kubo.style.width = (100 / W) + '%'; kubo.style.left = (pos.x * 100 / W) + '%'; kubo.style.top = ((H - 1 - pos.y) * 100 / H) + '%'; kubo.style.opacity = '.9'; g.append(kubo); }
+      buildBox.replaceChildren(g, h('div', {class: 'groundrow', style: {backgroundImage: url('grass')}}));
+    }
+    drawBuild(new Set(), {x: 0, y: 0});
+    const out = h('output', {}, count);
+    const bodyEl = h('div', {class: 'prog', 'aria-label': 'Befehle in der Schleife'});
+    function draw(){
+      out.textContent = count;
+      if (!body.length) bodyEl.replaceChildren(h('span', {class: 'muted'}, 'Noch leer. Tippe unten Befehle an.'));
+      else bodyEl.replaceChildren(...body.map((c, i) => h('button', {class: 'cmd', type: 'button', 'aria-label': `${NAMES[c]} entfernen`, onclick: () => { body.splice(i, 1); draw(); }, html: `<small>${i + 1}</small>${ICO[c]}<span>${NAMES[c]}</span>`})));
+    }
+    const add = c => () => { if (body.length >= 4){ toast('In den Wiederhole-Befehl passen nur 4 Befehle.'); return; } body.push(c); draw(); };
+    draw();
+    st.append(
+      h('div', {class: 'scenes'},
+        h('div', {class: 'scene'}, h('div', {class: 'lbl'}, 'So soll die Treppe aussehen'), h('div', {}, tgt, h('div', {class: 'groundrow', style: {backgroundImage: url('grass')}}))),
+        h('div', {class: 'scene'}, h('div', {class: 'lbl'}, 'Kubos Bau'), buildBox)),
+      h('div', {class: 'loopbox'},
+        h('div', {class: 'loophead'}, 'Wiederhole',
+          h('span', {class: 'stepper'}, h('button', {class: 'btn small', type: 'button', 'aria-label': 'Einmal weniger', onclick: () => { count = Math.max(1, count - 1); draw(); }}, '–'), out, h('button', {class: 'btn small', type: 'button', 'aria-label': 'Einmal mehr', onclick: () => { count = Math.min(9, count + 1); draw(); }}, '+')),
+          'mal:'),
+        bodyEl),
+      h('div', {class: 'row'},
+        h('button', {class: 'btn', type: 'button', onclick: add('S'), html: ICON.place + '<span>Setze Block</span>'}),
+        h('button', {class: 'btn', type: 'button', onclick: add('R'), html: ICO.R + '<span>Rechts</span>'}),
+        h('button', {class: 'btn', type: 'button', onclick: add('H'), html: ICON.up + '<span>Hoch</span>'})));
+    function sim(){
+      let x = 0, y = 0; const placed = new Set(); let outside = false; const steps = [];
+      for (let k = 0; k < count; k++) for (const c of body){
+        if (c === 'S'){ if (x >= W || y >= H) outside = true; placed.add(x + ',' + y); }
+        else if (c === 'R') x++; else y++;
+        steps.push({x, y, placed: new Set(placed)});
+      }
+      return {placed, outside, steps};
+    }
+    return {
+      async check(o){
+        if (!body.length) return {ok: false, msg: 'Im Wiederhole-Befehl steht noch nichts.'};
+        const r = sim(); const ok = !r.outside && r.placed.size === TARGET.size && [...r.placed].every(k => TARGET.has(k));
+        if (o && o.silent) return {ok};
+        drawBuild(new Set(), {x: 0, y: 0});
+        for (const s of r.steps){ await sleep(220); drawBuild(s.placed, s); }
+        if (!body.includes('S')) return {ok: false, msg: 'In der Schleife fehlt der Befehl Setze Block.'};
+        if (r.outside) return {ok: false, msg: 'Kubo läuft aus dem Bild hinaus. Probier weniger Wiederholungen.'};
+        if (!ok) return {ok: false, msg: 'Kubos Treppe sieht anders aus als auf dem Bild.'};
+        return {ok: true, msg: 'Die Treppe ist fertig.'};
+      },
+      solve(){ count = 4; body = ['S','R','S','H']; draw(); }
+    };
+  }
+});
+
+/* 3 — Kubo kann nur links (Befehlssatz) */
+LEVELS.push({ id: 3, biome: 'wiese', diff: 3, topic: 'Befehle', title: 'Kubo kann nur links',
+  story: ['Kubo soll zum Kristall fahren.', 'Er kennt nur zwei Befehle.', 'Vor: ein Feld geradeaus fahren.', 'Links-Vor: nach links drehen und dann ein Feld vorfahren.', 'Nach rechts drehen kann Kubo nicht. Durch Steine kommt er nicht durch.'],
+  question: 'Schreibe ein Programm, mit dem Kubo zum Kristall kommt.',
+  hint: 'Wenn Kubo nach rechts muss: Dreimal links ist auch einmal rechts! Dafür braucht er links neben sich Platz.',
+  explain: ['Kubo hat einen sehr kleinen Befehls-Vorrat.', 'Trotzdem kommt er überall hin, wenn genug Platz ist. Dreimal Links-Vor macht eine kleine Runde, danach schaut Kubo nach rechts.', 'Echte Computer haben auch nur wenige einfache Befehle. Aus ihnen baut man alles andere zusammen.', 'Die kürzeste Lösung hat 14 Befehle.'],
+  build(st, api){
+    const MAP = ['......','##....','..#...','..#...','#...#.','....#.'];
+    const W = 6, H = 6, S0 = {x: 0, y: 5, d: 3}, G = {x: 5, y: 0};
+    const D = [[0,-1],[-1,0],[0,1],[1,0]], ROT = [0, -90, 180, 90];
+    let prog = [];
+    const cs = 'min(52px, calc((100vw - 80px) / 6))';
+    const grid = h('div', {class: 'bgrid', style: `grid-template-columns:repeat(${W},auto);--cs:${cs};margin:0 auto`});
+    const cells = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++){ const t = MAP[y][x] === '#' ? 'stone' : (x === G.x && y === G.y ? 'crystal' : 'grassTop'); const c = h('div', {class: 'c b'}); c.style.backgroundImage = url(t); grid.append(c); cells.push(c); }
+    const kubo = img('kubo', 'kubo', 'Kubo'); kubo.style.width = (100 / W) + '%'; grid.append(kubo);
+    let rot = ROT[S0.d];
+    const put = (x, y) => { kubo.style.left = (x * 100 / W) + '%'; kubo.style.top = (y * 100 / H) + '%'; kubo.style.transform = `rotate(${rot}deg)`; };
+    const reset = () => { rot = ROT[S0.d]; put(S0.x, S0.y); cells.forEach(c => c.querySelectorAll('.trail').forEach(t => t.remove())); };
+    reset();
+    const progEl = h('div', {class: 'prog', 'aria-label': 'Kubos Programm'});
+    const NAMES = {V: 'Vor', L: 'Links-Vor'};
+    function draw(cur){
+      if (!prog.length) progEl.replaceChildren(h('span', {class: 'muted'}, 'Noch leer. Tippe unten auf Vor oder Links-Vor.'));
+      else progEl.replaceChildren(...prog.map((c, i) => h('span', {class: 'cmd' + (i === cur ? ' now' : ''), html: `<small>${i + 1}</small>${c === 'V' ? ICON.up : ICON.left}<span>${NAMES[c]}</span>`})));
+    }
+    draw();
+    const add = c => () => { if (prog.length >= 40) return; prog.push(c); draw(); reset(); };
+    st.append(
+      h('p', {class: 'muted', style: 'margin:0'}, 'Kubo startet unten links und schaut nach rechts.'),
+      grid,
+      h('div', {class: 'boxlbl'}, 'Kubos Programm'), progEl,
+      h('div', {class: 'row'},
+        h('button', {class: 'btn', type: 'button', onclick: add('V'), html: ICON.up + '<span>Vor</span>'}),
+        h('button', {class: 'btn', type: 'button', onclick: add('L'), html: ICON.left + '<span>Links-Vor</span>'}),
+        h('button', {class: 'btn small', type: 'button', onclick: () => { prog.pop(); draw(); reset(); }, html: ICON.back + '<span>Letzten löschen</span>'}),
+        h('button', {class: 'btn small', type: 'button', onclick: () => { prog = []; draw(); reset(); }}, 'Alles löschen')));
+    function sim(p){
+      let x = S0.x, y = S0.y, d = S0.d; const steps = [];
+      for (let i = 0; i < p.length; i++){
+        if (p[i] === 'L') d = (d + 1) % 4;
+        const nx = x + D[d][0], ny = y + D[d][1];
+        if (nx < 0 || ny < 0 || nx >= W || ny >= H) return {steps, err: 'out', i, d};
+        if (MAP[ny][nx] === '#') return {steps, err: 'stone', i, d};
+        steps.push({x: nx, y: ny, d, turn: p[i] === 'L', px: x, py: y}); x = nx; y = ny;
+        if (x === G.x && y === G.y) return {steps, ok: true, i};
+      }
+      return {steps, ok: false};
+    }
+    return {
+      async check(o){
+        if (!prog.length) return {ok: false, msg: 'Kubos Programm ist noch leer.'};
+        const r = sim(prog);
+        if (o && o.silent) return {ok: !!r.ok};
+        reset();
+        for (let i = 0; i < r.steps.length; i++){
+          const s = r.steps[i]; draw(i);
+          if (s.turn){ rot -= 90; kubo.style.transform = `rotate(${rot}deg)`; await sleep(260); }
+          cells[s.py * W + s.px].append(h('i', {class: 'trail'}));
+          put(s.x, s.y); await sleep(320);
+        }
+        if (r.err){ draw(r.i); if (prog[r.i] === 'L'){ rot -= 90; kubo.style.transform = `rotate(${rot}deg)`; } await sleep(300); }
+        draw();
+        if (r.ok){ const n = r.i + 1; return {ok: true, msg: `Kubo ist beim Kristall! Du hast ${n} Befehle gebraucht.` + (n <= 14 ? ' Das ist die kürzeste Lösung. Stark!' : ' Die kürzeste Lösung hat 14 Befehle. Schaffst du das auch?')}; }
+        if (r.err === 'out') return {ok: false, msg: `Bei Befehl ${r.i + 1} würde Kubo aus dem Spielfeld fahren.`};
+        if (r.err === 'stone') return {ok: false, msg: `Bei Befehl ${r.i + 1} stößt Kubo gegen einen Stein.`};
+        return {ok: false, msg: 'Kubo ist am Ende noch nicht beim Kristall. Es fehlen noch Befehle.'};
+      },
+      solve(){ prog = 'VVVLVVVVLLLVVL'.split(''); draw(); }
+    };
+  }
+});
+
+/* 4 — Lampen-Zahlen (Binär) */
+LEVELS.push({ id: 4, biome: 'hoehle', diff: 1, topic: 'Binärzahlen', title: 'Lampen-Zahlen',
+  story: ['Vor der Schatzkammer hängen 5 Lampen.', 'Jede Lampe hat einen Wert: 16, 8, 4, 2 und 1.', 'Die Tür geht auf, wenn die Werte der leuchtenden Lampen zusammen genau die Geheimzahl ergeben.'],
+  question: 'Schalte die richtigen Lampen an.',
+  hint: 'Fang links bei der größten Lampe an. Passt ihr Wert noch in die Geheimzahl? Dann an. Sonst aus. Dann die nächste Lampe.',
+  explain: ['Computer speichern alle Zahlen mit nur zwei Zuständen: an und aus. Man schreibt dafür 1 und 0.', 'Jede Stelle ist doppelt so viel wert wie die Stelle rechts daneben.', '13 ist 8 plus 4 plus 1. Mit Lampen: aus, an, an, aus, an. Als Binärzahl: 01101.', 'Mit 5 Lampen kannst du alle Zahlen von 0 bis 31 zeigen.'],
+  build(st, api){
+    const rounds = api.test ? [21] : [6, 13, 25]; let ri = 0;
+    const VAL = [16, 8, 4, 2, 1]; let on = [0, 0, 0, 0, 0];
+    const num = h('span', {class: 'bignum'});
+    const roundEl = h('span', {class: 'chip'});
+    const lampsEl = h('div', {class: 'lamps'});
+    const sayNum = h('span');
+    function draw(){
+      num.textContent = rounds[ri];
+      roundEl.textContent = rounds.length > 1 ? `Tür ${ri + 1} von ${rounds.length}` : 'Eine Tür';
+      sayNum.replaceChildren(sayBtn('Die Geheimzahl ist ' + rounds[ri] + '.'));
+      lampsEl.replaceChildren(...VAL.map((v, i) => h('button', {class: 'lamp' + (on[i] ? ' on' : ''), type: 'button', 'aria-pressed': on[i] ? 'true' : 'false', 'aria-label': `Lampe mit Wert ${v}, ${on[i] ? 'an' : 'aus'}`, onclick: () => { on[i] ^= 1; draw(); }},
+        blk(on[i] ? 'lampOn' : 'lampOff'), h('span', {class: 'v'}, v), h('span', {class: 'st'}, on[i] ? 'an' : 'aus'))));
+    }
+    draw();
+    st.append(h('div', {class: 'target'}, h('span', {style: 'font-weight:700'}, 'Geheimzahl:'), num, sayNum, roundEl), lampsEl,
+      h('p', {class: 'muted', style: 'margin:0;text-align:center'}, 'Tippe eine Lampe an, um sie an- oder auszuschalten.'));
+    const sum = () => on.reduce((t, b, i) => t + (b ? VAL[i] : 0), 0);
+    return {
+      async check(o){
+        const s = sum(), t = rounds[ri];
+        if (s !== t) return {ok: false, msg: `Deine Lampen ergeben zusammen ${s}. Gesucht ist ${t}.`};
+        if (ri < rounds.length - 1){ ri++; on = [0,0,0,0,0]; draw(); return {progress: true, msg: `Richtig, ${t} stimmt! Die nächste Tür hat die Geheimzahl ${rounds[ri]}.`}; }
+        return {ok: true, msg: rounds.length > 1 ? 'Alle drei Türen sind offen!' : ''};
+      },
+      solve(){ const t = rounds[ri]; on = VAL.map(v => (t & v) ? 1 : 0); draw(); }
+    };
+  }
+});
+
+/* 5 — Kristall-Bauplan (Lauflängen-Kodierung) */
+LEVELS.push({ id: 5, biome: 'hoehle', diff: 2, topic: 'Kompression', title: 'Der Kristall-Bauplan',
+  story: ['Bix bekommt einen Bauplan als Zahlen-Nachricht.', 'Jede Zeile beschreibt eine Reihe von links nach rechts.', 'Die Zahlen sagen abwechselnd: so viele Sandblöcke, dann so viele Kristallblöcke, dann wieder Sand.', 'Jede Zeile beginnt immer mit Sand.'],
+  question: 'Baue das Bild nach dem Plan. Tippe auf ein Feld, um dort Kristall zu setzen.',
+  hint: 'Achte auf die Zeile mit der 0. Null Sandblöcke heißt: Die Reihe beginnt sofort mit Kristall.',
+  explain: ['Statt jeden Block einzeln aufzuschreiben, zählt man gleiche Blöcke, die nebeneinander liegen.', 'Aus Sand, Sand, Sand, Kristall, Kristall wird einfach 3, 2.', 'Das nennt man Lauflängen-Kodierung. So brauchen Bilder weniger Speicherplatz. Das ist eine Art Kompression.', 'Die 0 am Anfang sorgt dafür, dass man immer weiß, mit welchem Block die Zeile beginnt.'],
+  build(st, api){
+    const CODES = [[3,2,3],[2,4,2],[1,6,1],[0,8],[1,6,1],[2,4,2],[3,2,3]];
+    const W = 8, H = CODES.length;
+    const TARGET = CODES.map(code => { const row = []; let c = 0; code.forEach(n => { for (let i = 0; i < n; i++) row.push(c); c ^= 1; }); return row; });
+    let G = TARGET.map(r => r.map(() => 0));
+    const cs = 'min(40px, calc((100vw - 170px) / 8))';
+    const wrap = h('div', {class: 'rle', style: `--cs:${cs}`});
+    const codeCol = h('div'), paint = h('div', {class: 'paint', style: `grid-template-columns:repeat(${W},auto)`});
+    const btns = [];
+    for (let y = 0; y < H; y++){
+      const txt = CODES[y].join(', ');
+      codeCol.append(h('div', {class: 'code'}, h('span', {}, txt), sayBtn(`Zeile ${y + 1}: ${CODES[y].join(', ')}`)));
+      for (let x = 0; x < W; x++){
+        const b = h('button', {class: 'b', type: 'button', 'aria-label': `Zeile ${y + 1}, Feld ${x + 1}`, onclick: () => { G[y][x] ^= 1; paintCell(x, y); }});
+        btns.push(b); paint.append(b); paintCell(x, y, b);
+      }
+    }
+    function paintCell(x, y, el){ const b = el || btns[y * W + x]; b.style.backgroundImage = url(G[y][x] ? 'crystal' : 'sand'); b.setAttribute('aria-pressed', G[y][x] ? 'true' : 'false'); }
+    wrap.append(codeCol, paint);
+    st.append(h('div', {class: 'row', style: 'justify-content:center;gap:16px'},
+      h('span', {class: 'row', style: 'gap:6px'}, blk('sand', '', ''), 'Sand'), h('span', {class: 'row', style: 'gap:6px'}, blk('crystal'), 'Kristall')), wrap);
+    st.querySelectorAll('.row > .row > .b').forEach(e => { e.style.width = '28px'; e.style.height = '28px'; });
+    return {
+      async check(o){
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (G[y][x] !== TARGET[y][x]) return {ok: false, msg: `Zeile ${y + 1} stimmt noch nicht. Ihr Code ist ${CODES[y].join(', ')}.`};
+        return {ok: true, msg: 'Der Kristall ist fertig.'};
+      },
+      solve(){ G = TARGET.map(r => r.slice()); for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) paintCell(x, y); }
+    };
+  }
+});
+
+/* 6 — Die Geheim-Scheiben (XOR) */
+LEVELS.push({ id: 6, biome: 'hoehle', diff: 2, topic: 'Verschlüsselung', title: 'Die Geheim-Scheiben',
+  story: ['Bix schickt ein geheimes Bild auf zwei Glasscheiben.', 'Jede Scheibe allein sieht aus wie wildes Durcheinander.', 'Die Regel: Ist im Geheimbild ein Feld dunkel, sind die beiden Scheiben an dieser Stelle verschieden.', 'Ist das Feld im Geheimbild hell, sind beide Scheiben dort gleich.'],
+  question: 'Welches Bild ist das Geheimbild?',
+  hint: 'Vergleiche die Scheiben Feld für Feld. Tippe ein Feld an, dann wird es auf beiden Scheiben markiert. Gleich heißt hell, verschieden heißt dunkel.',
+  explain: ['Jede Scheibe allein verrät nichts. Erst beide zusammen ergeben das Bild.', 'Das nennt man visuelle Kryptografie.', 'Die Regel gleich gibt hell, verschieden gibt dunkel heißt in der Informatik XOR. Auf Deutsch: entweder oder.', 'XOR wird beim Verschlüsseln sehr oft benutzt.'],
+  build(st, api){
+    const PICS = [
+      ['..#..','.###.','#####','.#.#.','.###.'],
+      ['..#..','.###.','#.#.#','..#..','..#..'],
+      ['..#..','.###.','#####','..#..','..#..'],
+      ['.#.#.','#####','#####','.###.','..#..']
+    ];
+    const SECRET = 2; const sec = PICS[SECRET].join('').split('').map(c => c === '#' ? 1 : 0);
+    const rnd = mkRand(4242); const A = sec.map(() => rnd() < .5 ? 1 : 0); const B = A.map((a, i) => a ^ sec[i]);
+    let sel = null, mark = -1;
+    const cs = 'min(40px, calc((100vw - 100px) / 10))';
+    const panes = [A, B].map((L, pi) => {
+      const g = h('div', {class: 'bgrid pane', style: `grid-template-columns:repeat(5,auto);--cs:${cs}`});
+      L.forEach((v, i) => g.append(h('div', {class: 'c ' + (v ? 'd' : 'l'), role: 'button', tabindex: '0', 'aria-label': `Scheibe ${pi + 1}, Feld ${i + 1}, ${v ? 'dunkel' : 'hell'}`, onclick: () => { mark = mark === i ? -1 : i; drawMark(); }, onkeydown: e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); mark = mark === i ? -1 : i; drawMark(); } }})));
+      return g;
+    });
+    function drawMark(){ panes.forEach(g => [...g.children].forEach((c, i) => c.classList.toggle('x', i === mark))); }
+    const opts = h('div', {class: 'opt'});
+    function drawOpts(){
+      opts.replaceChildren(...PICS.map((p, i) => h('button', {class: 'btn', type: 'button', 'aria-pressed': sel === i ? 'true' : 'false', style: 'flex-direction:column;padding:8px', onclick: () => { sel = i; drawOpts(); }},
+        h('div', {class: 'mini', 'aria-hidden': 'true'}, ...p.join('').split('').map(c => h('i', {class: c === '#' ? 'd' : ''}))), 'Bild ' + 'ABCD'[i])));
+    }
+    drawOpts();
+    st.append(h('div', {class: 'panes'}, h('div', {class: 'scene'}, h('div', {class: 'lbl'}, 'Scheibe 1'), panes[0]), h('div', {class: 'scene'}, h('div', {class: 'lbl'}, 'Scheibe 2'), panes[1])),
+      h('div', {class: 'boxlbl', style: 'justify-content:center'}, 'Welches ist das Geheimbild?'), opts);
+    return {
+      async check(){ if (sel === null) return {ok: false, msg: 'Tippe zuerst eins der vier Bilder an.'}; if (sel === SECRET) return {ok: true, msg: 'Es ist der Baum.'}; return {ok: false, msg: `Bild ${'ABCD'[sel]} passt nicht. Vergleiche noch einmal die oberen drei Zeilen und die unteren zwei.`}; },
+      solve(){ sel = SECRET; drawOpts(); }
+    };
+  }
+});
+
+/* 7 — Der Blitz (Parität) */
+LEVELS.push({ id: 7, biome: 'hoehle', diff: 3, topic: 'Fehler finden', title: 'Der Blitz',
+  story: ['Bix hat eine Wand aus Gold und Stein gebaut.', 'Dann hat er rechts eine Spalte und unten eine Reihe angebaut.', 'Seitdem gilt: In jeder Reihe und in jeder Spalte sind gerade viele Goldblöcke. Also 0, 2, 4 oder 6.', 'Heute Nacht hat ein Blitz einen einzigen Block verwandelt. Aus Gold wurde Stein, oder aus Stein wurde Gold.'],
+  question: 'Tippe auf den Block, den der Blitz getroffen hat.',
+  hint: 'Zähle die Goldblöcke in jeder Reihe. Genau eine Reihe hat ungerade viele. Mach dann das Gleiche mit den Spalten.',
+  explain: ['Die angebaute Reihe und Spalte heißen Prüf-Blöcke. Informatiker sagen Paritäts-Bits.', 'Wenn ein Block falsch ist, wird genau eine Reihe ungerade und genau eine Spalte ungerade.', 'Wo sich die beiden kreuzen, liegt der Fehler.', 'So finden Computer Fehler in Daten, zum Beispiel beim Funk oder in QR-Codes. Manchmal können sie den Fehler sogar selbst reparieren.'],
+  build(st, api){
+    const DATA = [[1,0,1,1,0],[0,1,1,0,0],[1,1,0,1,1],[0,0,1,0,1],[1,0,0,1,0]];
+    const N = 6; const G = [];
+    for (let r = 0; r < 5; r++){ G.push(DATA[r].slice()); G[r].push(DATA[r].reduce((a, b) => a + b, 0) % 2); }
+    const last = []; for (let c = 0; c < 6; c++){ let s = 0; for (let r = 0; r < 5; r++) s += G[r][c]; last.push(s % 2); } G.push(last);
+    const FLIP = [3, 1]; G[FLIP[0]][FLIP[1]] ^= 1;
+    let sel = null, help = false;
+    const cs = 'min(44px, calc((100vw - 90px) / 7))';
+    const box = h('div', {style: 'display:flex;justify-content:center'});
+    function draw(){
+      const g = h('div', {class: 'paint', style: `grid-template-columns:repeat(${N},auto) auto;--cs:${cs};background:transparent;border:0`});
+      for (let r = 0; r < N; r++){
+        for (let c = 0; c < N; c++){
+          const b = h('button', {class: 'b' + (sel && sel[0] === r && sel[1] === c ? ' sel' : ''), type: 'button', 'aria-label': `Reihe ${r + 1}, Spalte ${c + 1}, ${G[r][c] ? 'Gold' : 'Stein'}`, onclick: () => { sel = [r, c]; draw(); }});
+          b.style.backgroundImage = url(G[r][c] ? 'gold' : 'stone');
+          if (c === 5) b.style.borderLeft = '4px dashed var(--edge2)';
+          if (r === 5) b.style.borderTop = '4px dashed var(--edge2)';
+          g.append(b);
+        }
+        g.append(h('div', {class: 'counts', style: `width:${cs};visibility:${help ? 'visible' : 'hidden'}`, 'aria-hidden': help ? null : 'true'}, G[r].reduce((a, b) => a + b, 0)));
+      }
+      for (let c = 0; c < N; c++){ let s = 0; for (let r = 0; r < N; r++) s += G[r][c]; g.append(h('div', {class: 'counts', style: `height:${cs};visibility:${help ? 'visible' : 'hidden'}`}, s)); }
+      g.append(h('div'));
+      box.replaceChildren(g);
+    }
+    draw();
+    const hb = h('button', {class: 'btn small', type: 'button', 'aria-pressed': 'false', onclick: () => { help = !help; hb.setAttribute('aria-pressed', help ? 'true' : 'false'); hb.textContent = help ? 'Zähl-Hilfe ausblenden' : 'Zähl-Hilfe zeigen'; draw(); }}, 'Zähl-Hilfe zeigen');
+    st.append(h('div', {class: 'row', style: 'justify-content:center;gap:16px'}, h('span', {class: 'row', style: 'gap:6px'}, blk('gold'), 'Gold'), h('span', {class: 'row', style: 'gap:6px'}, blk('stone'), 'Stein'), api.test ? null : hb), box,
+      h('p', {class: 'muted', style: 'margin:0;text-align:center'}, 'Die gestrichelte Linie zeigt, wo Bix angebaut hat.'));
+    st.querySelectorAll('.row > .row > .b').forEach(e => { e.style.width = '28px'; e.style.height = '28px'; });
+    return {
+      async check(){ if (!sel) return {ok: false, msg: 'Tippe zuerst einen Block an.'}; if (sel[0] === FLIP[0] && sel[1] === FLIP[1]) return {ok: true, msg: 'Reihe 4 und Spalte 2 sind ungerade. Dort kreuzen sie sich.'}; return {ok: false, msg: 'Das ist nicht der Blitz-Block. Zähle die Goldblöcke in jeder Reihe und in jeder Spalte.'}; },
+      solve(){ sel = FLIP.slice(); draw(); }
+    };
+  }
+});
+
+/* 8 — Truhen sortieren */
+LEVELS.push({ id: 8, biome: 'wald', diff: 1, topic: 'Sortieren', title: 'Truhen sortieren',
+  story: ['Bix räumt sein Lager auf.', 'Die Truhe mit den meisten Kristallen kommt ganz nach links.', 'Haben zwei Truhen gleich viele Kristalle, kommt die mit mehr Goldbarren weiter nach links.'],
+  question: 'Bringe die Truhen in die richtige Reihenfolge. Tippe zwei Truhen nacheinander an, dann tauschen sie die Plätze.',
+  hint: 'Sortiere zuerst nur nach den Kristallen. Schau erst bei Gleichstand auf das Gold.',
+  explain: ['Sortieren ist eine der wichtigsten Aufgaben für Computer.', 'Hier gibt es zwei Regeln. Zuerst zählen die Kristalle. Nur bei Gleichstand entscheidet das Gold.', 'Genauso sortiert ein Computer Wörter: erst nach dem ersten Buchstaben, bei Gleichstand nach dem zweiten.', 'Beim Biber sind solche Regeln oft in einem Satz versteckt. Lies oder hör ihn zweimal.'],
+  build(st, api){
+    const CH = {A: [3,1], B: [1,4], C: [3,2], D: [2,0], E: [1,1]};
+    let order = ['B','D','A','E','C']; const RIGHT = ['C','A','D','B','E'];
+    let sel = null;
+    const row = h('div', {class: 'chests'});
+    const desc = k => `${plural(CH[k][0], 'Kristall', 'Kristalle')} und ${CH[k][1]} Goldbarren`;
+    function draw(){
+      row.replaceChildren(...order.map((k, i) => h('button', {class: 'chest' + (sel === i ? ' sel' : ''), type: 'button', 'aria-label': `Platz ${i + 1}: Truhe mit ${desc(k)}`, onclick: () => {
+          if (sel === null) sel = i; else if (sel === i) sel = null; else { [order[sel], order[i]] = [order[i], order[sel]]; sel = null; }
+          draw(); }},
+        blk('chest'), h('span', {class: 'it'}, img('gem'), CH[k][0]), h('span', {class: 'it'}, img('ingot'), CH[k][1]))));
+    }
+    draw();
+    st.append(h('div', {class: 'lr'}, h('span', {}, '← links: am meisten'), h('span', {}, 'rechts: am wenigsten →')), row,
+      h('div', {class: 'row', style: 'justify-content:center'}, readBtn(() => order.map((k, i) => `Platz ${i + 1}: ${desc(k)}.`), 'Truhen vorlesen')));
+    return {
+      async check(){
+        if (order.join('') === RIGHT.join('')) return {ok: true, msg: 'Alle Truhen stehen richtig.'};
+        const kr = order.map(k => CH[k][0]); const krOk = kr.every((v, i) => i === 0 || kr[i - 1] >= v);
+        return {ok: false, msg: krOk ? 'Die Kristalle stimmen schon. Schau bei Gleichstand auf das Gold.' : 'Noch nicht richtig sortiert. Prüfe zuerst die Kristalle.'};
+      },
+      solve(){ order = RIGHT.slice(); sel = null; draw(); }
+    };
+  }
+});
+
+/* 9 — Der Block-Bestimmer (Entscheidungsbaum) */
+LEVELS.push({ id: 9, biome: 'wald', diff: 1, topic: 'Entscheidungsbaum', title: 'Der Block-Bestimmer',
+  story: ['Bix hat einen Frage-Baum gebaut. Damit erkennt er jeden Block.', 'Man beginnt oben und beantwortet jede Frage mit ja oder nein.', 'Dann geht man den passenden Weg weiter, bis man unten ankommt.', 'Leider sind unten alle Schilder abgefallen.'],
+  question: 'Setze die fünf Blöcke an die richtigen Stellen. Die Tabelle hilft dir.',
+  hint: 'Nimm einen Block aus der Tabelle und geh mit ihm von oben durch den Baum. Wo kommst du an?',
+  explain: ['Das ist ein Entscheidungsbaum. Jede Frage teilt die Blöcke in zwei Gruppen.', 'Computer benutzen solche Bäume, um Dinge zu erkennen, zum Beispiel Tierarten auf Fotos.', 'Künstliche Intelligenz lernt solche Bäume oft selbst aus vielen Beispielen.'],
+  build(st, api){
+    const BL = {kristall: {n: 'Kristall', t: 'crystal', gl: 'ja', f: 'blau', ha: 'ja'}, gold: {n: 'Gold', t: 'gold', gl: 'ja', f: 'gelb', ha: 'ja'}, kohle: {n: 'Kohle', t: 'coal', gl: 'nein', f: 'schwarz', ha: 'ja'}, sand: {n: 'Sand', t: 'sand', gl: 'nein', f: 'gelb', ha: 'nein'}, schnee: {n: 'Schnee', t: 'snow', gl: 'nein', f: 'weiß', ha: 'nein'}};
+    const KEYS = ['sand','kristall','schnee','kohle','gold'];
+    const ANSWER = ['kristall','gold','kohle','sand','schnee'];
+    let place = [null,null,null,null,null], pick = null;
+    const tbl = h('table', {class: 'dtable'}, h('thead', {}, h('tr', {}, h('th', {}, 'Block'), h('th', {}, 'Glänzt er?'), h('th', {}, 'Farbe'), h('th', {}, 'Ist er hart?'))),
+      h('tbody', {}, ...KEYS.map(k => h('tr', {}, h('td', {}, blk(BL[k].t), BL[k].n), h('td', {}, BL[k].gl), h('td', {}, BL[k].f), h('td', {}, BL[k].ha)))));
+    const leaves = [0,1,2,3,4].map(i => h('button', {class: 'leaf', type: 'button', onclick: () => {
+      if (pick){ for (let j = 0; j < 5; j++) if (place[j] === pick) place[j] = null; place[i] = pick; pick = null; }
+      else if (place[i]) place[i] = null;
+      draw(); }}));
+    const q = t => h('div', {class: 'dq'}, h('span', {}, t), sayBtn(t));
+    const arm = (yn, grow, ...kids) => h('div', {class: 'arm', style: `flex-grow:${grow}`}, h('div', {class: 'ln'}), h('span', {class: 'yn ' + yn}, yn), h('div', {class: 'ln'}), ...kids);
+    const tree = h('div', {class: 'dt'},
+      q('Glänzt der Block?'),
+      h('div', {class: 'dbr'},
+        arm('ja', 2, q('Ist er blau?'), h('div', {class: 'dbr'}, arm('ja', 1, leaves[0]), arm('nein', 1, leaves[1]))),
+        arm('nein', 3, q('Ist er hart?'), h('div', {class: 'dbr'}, arm('ja', 1, leaves[2]), arm('nein', 2, q('Ist er gelb?'), h('div', {class: 'dbr'}, arm('ja', 1, leaves[3]), arm('nein', 1, leaves[4])))))));
+    const pal = h('div', {class: 'palette'});
+    function draw(){
+      leaves.forEach((l, i) => {
+        const k = place[i]; l.classList.toggle('filled', !!k);
+        l.setAttribute('aria-label', k ? `Schild ${i + 1}: ${BL[k].n}. Antippen zum Entfernen.` : `Schild ${i + 1}: leer`);
+        l.replaceChildren(k ? blk(BL[k].t) : h('span', {class: 'ph'}, '?'), h('span', {}, k ? BL[k].n : 'leer'));
+      });
+      pal.replaceChildren(...KEYS.map(k => h('button', {class: 'pal' + (pick === k ? ' sel' : '') + (place.includes(k) ? ' used' : ''), type: 'button', 'aria-pressed': pick === k ? 'true' : 'false', onclick: () => { pick = pick === k ? null : k; draw(); }}, blk(BL[k].t), BL[k].n)));
+    }
+    draw();
+    st.append(h('div', {class: 'tblwrap'}, tbl),
+      h('div', {class: 'row', style: 'justify-content:center'}, readBtn(() => KEYS.map(k => `${BL[k].n}: glänzt ${BL[k].gl}, Farbe ${BL[k].f}, hart ${BL[k].ha}.`), 'Tabelle vorlesen')),
+      tree, h('p', {class: 'muted', style: 'margin:0;text-align:center'}, 'Tippe erst einen Block an, dann ein Schild im Baum.'), pal);
+    return {
+      async check(){
+        if (place.some(p => !p)) return {ok: false, msg: 'Es fehlen noch Schilder im Baum.'};
+        const c = place.filter((p, i) => p === ANSWER[i]).length;
+        if (c === 5) return {ok: true, msg: 'Alle fünf Schilder hängen richtig.'};
+        return {ok: false, msg: `${c} von 5 Blöcken stehen richtig. Geh mit jedem Block einmal von oben durch den Baum.`};
+      },
+      solve(){ place = ANSWER.slice(); pick = null; draw(); }
+    };
+  }
+});
+
+/* 10 — Die Loren-Maschine (Sortiernetz) */
+LEVELS.push({ id: 10, biome: 'wald', diff: 2, topic: 'Sortier-Netzwerk', title: 'Die Loren-Maschine',
+  story: ['Vier Loren mit Zahlen fahren unten los, auf vier Gleisen nach oben.', 'An jeder Weiche treffen sich zwei Gleise.', 'Die Lore mit der kleineren Zahl fährt links weiter, die mit der größeren rechts.', 'Am Ende sollen die Loren sortiert ankommen: die kleinste Zahl ganz links.'],
+  question: 'Oben fehlt noch eine Weiche. Zwischen welche Gleise muss sie, damit die Loren immer sortiert ankommen?',
+  hint: 'Mach mehrere Probefahrten mit neuen Zahlen. Wo landet die kleinste Zahl immer? Wo die größte?',
+  explain: ['Nach den ersten vier Weichen ist die kleinste Zahl sicher ganz links und die größte sicher ganz rechts.', 'Nur die zwei in der Mitte können noch falsch herum stehen.', 'Darum muss die letzte Weiche zwischen Gleis 2 und Gleis 3.', 'So eine Maschine heißt Sortier-Netzwerk. Mehrere Vergleiche passieren gleichzeitig, deshalb ist sie sehr schnell.'],
+  build(st, api){
+    const X = [60, 140, 220, 300];
+    const STAGES = [{y: 360, cmp: [[0,1],[2,3]]}, {y: 290, cmp: [[0,2]]}, {y: 220, cmp: [[1,3]]}];
+    const SLOT_Y = 150, TOP = 70, START = 430;
+    let vals = [7, 2, 9, 4], slot = null, running = false;
+    const svg = sv('svg', {viewBox: '0 0 360 480', class: 'svgbox', role: 'img', 'aria-label': 'Loren-Maschine mit vier Gleisen und Weichen'});
+    const gTracks = sv('g'), gCmp = sv('g'), gSlot = sv('g'), gCarts = sv('g');
+    X.forEach((x, i) => {
+      gTracks.append(sv('line', {x1: x, y1: 40, x2: x, y2: 450, stroke: '#8A6A44', 'stroke-width': 14, 'stroke-dasharray': '4 8'}));
+      gTracks.append(sv('line', {x1: x - 5, y1: 40, x2: x - 5, y2: 450, stroke: 'var(--wire)', 'stroke-width': 3}));
+      gTracks.append(sv('line', {x1: x + 5, y1: 40, x2: x + 5, y2: 450, stroke: 'var(--wire)', 'stroke-width': 3}));
+      gTracks.append(sv('text', {x: x, y: 474, 'text-anchor': 'middle', class: 'lbl'}, 'Gleis ' + (i + 1)));
+    });
+    const cmpLine = (a, b, y, col, dash) => [sv('line', {x1: X[a], y1: y, x2: X[b], y2: y, stroke: col, 'stroke-width': 7, 'stroke-linecap': 'round', 'stroke-dasharray': dash || null}), sv('circle', {cx: X[a], cy: y, r: 10, fill: col}), sv('circle', {cx: X[b], cy: y, r: 10, fill: col})];
+    STAGES.forEach(s => s.cmp.forEach(([a, b]) => gCmp.append(...cmpLine(a, b, s.y, 'var(--accent)'))));
+        function drawSlot(){
+      gSlot.replaceChildren();
+      if (slot === null){ gSlot.append(sv('rect', {x: 30, y: SLOT_Y - 20, width: 300, height: 40, fill: 'none', stroke: 'var(--ink2)', 'stroke-width': 3, 'stroke-dasharray': '8 6', rx: 4}), sv('text', {x: 180, y: SLOT_Y + 6, 'text-anchor': 'middle', class: 'lbl'}, '? Hier fehlt eine Weiche')); }
+      else gSlot.append(...cmpLine(slot, slot + 1, SLOT_Y, 'var(--crystal)'));
+    }
+    drawSlot();
+    const carts = [0,1,2,3].map(i => {
+      const g = sv('g', {style: 'transition:transform .45s ease'});
+      g.append(sv('image', {href: TEX.cart, x: -26, y: -24, width: 52, height: 44, style: 'image-rendering:pixelated'}), sv('rect', {x: -14, y: -22, width: 28, height: 24, fill: 'var(--panel)', stroke: 'var(--edge2)', 'stroke-width': 2, rx: 2}), sv('text', {x: 0, y: -3, 'text-anchor': 'middle', class: 'num', 'font-size': 20}, ''));
+      gCarts.append(g); return {g, track: i};
+    });
+    function placeCarts(y){ carts.forEach((c, i) => { c.g.querySelector('text').textContent = vals[i]; c.g.style.transform = `translate(${X[c.track]}px, ${y}px)`; }); }
+    function resetCarts(){ carts.forEach((c, i) => { c.track = i; }); placeCarts(START); }
+    resetCarts();
+    svg.append(gTracks, gCmp, gSlot, gCarts);
+    const status = h('p', {class: 'sum', style: 'margin:0;min-height:1.5em', 'aria-live': 'polite'});
+    const opts = h('div', {class: 'opt'});
+    function drawOpts(){ opts.replaceChildren(...[0,1,2].map(i => h('button', {class: 'btn', type: 'button', 'aria-pressed': slot === i ? 'true' : 'false', onclick: () => { slot = i; drawOpts(); drawSlot(); resetCarts(); status.textContent = ''; }}, `Zwischen Gleis ${i + 1} und ${i + 2}`))); }
+    drawOpts();
+    async function ride(){
+      if (running) return; running = true; resetCarts(); status.textContent = ''; await sleep(200);
+      const all = STAGES.slice(); if (slot !== null) all.push({y: SLOT_Y, cmp: [[slot, slot + 1]]});
+      for (const s of all){
+        placeCarts(s.y); await sleep(500);
+        let changed = false;
+        for (const [a, b] of s.cmp){ const ca = carts.find(c => c.track === a), cb = carts.find(c => c.track === b); if (vals[carts.indexOf(ca)] > vals[carts.indexOf(cb)]){ ca.track = b; cb.track = a; changed = true; } }
+        if (changed){ placeCarts(s.y); await sleep(500); }
+      }
+      placeCarts(TOP); await sleep(500);
+      const outv = [0,1,2,3].map(t => vals[carts.findIndex(c => c.track === t)]);
+      const sorted = outv.every((v, i) => i === 0 || outv[i - 1] <= v);
+      status.textContent = `Oben: ${outv.join(', ')} – ` + (sorted ? 'sortiert!' : 'nicht sortiert!');
+      running = false;
+    }
+    function newVals(){ const pool = [1,2,3,4,5,6,7,8,9]; for (let i = pool.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; } vals = pool.slice(0, 4); resetCarts(); status.textContent = ''; }
+    st.append(h('div', {class: 'boxlbl', style: 'justify-content:center'}, 'Wo kommt die fehlende Weiche hin?'), opts, svg, status,
+      h('div', {class: 'row', style: 'justify-content:center'}, h('button', {class: 'btn gold', type: 'button', onclick: ride}, 'Probefahrt'), h('button', {class: 'btn', type: 'button', onclick: newVals}, 'Neue Zahlen')));
+    return {
+      async check(){ if (slot === null) return {ok: false, msg: 'Wähle zuerst eine Stelle für die Weiche.'}; if (slot === 1) return {ok: true, msg: 'Mit dieser Weiche kommen alle Loren sortiert an.'}; return {ok: false, msg: 'Mit dieser Weiche kommen manche Loren falsch an. Mach ein paar Probefahrten mit neuen Zahlen.'}; },
+      solve(){ slot = 1; drawOpts(); drawSlot(); }
+    };
+  }
+});
+
+/* 11 — Holz sammeln (Optimierung) */
+LEVELS.push({ id: 11, biome: 'wald', diff: 3, topic: 'Optimierung', title: 'Holz sammeln',
+  story: ['Bix braucht Holz für seinen Damm.', 'In einer Reihe stehen neun Bäume. Die Zahl sagt, wie viele Holzblöcke ein Baum bringt.', 'Bix geht von links nach rechts.', 'Jeder nächste Baum, den er fällt, muss kleiner sein als der vorige.'],
+  question: 'Welche Bäume soll Bix fällen, damit er möglichst viel Holz bekommt?',
+  hint: 'Der größte Baum zuerst ist nicht immer am besten. Probiere verschiedene Wege und vergleiche die Summe.',
+  explain: ['Die beste Wahl ist 9, 8, 5, 3, 1. Das sind 26 Holzblöcke.', 'Wer nach der 9 sofort die 6 nimmt, verpasst die 8.', 'So eine Aufgabe heißt Optimierung: Unter vielen erlaubten Lösungen sucht man die beste.', 'Ein Profi-Trick: Rechne von rechts nach links. Merk dir für jeden Baum, wie viel Holz ab ihm noch möglich ist.'],
+  build(st, api){
+    const T = [7,4,9,6,2,8,5,3,1]; let sel = new Set();
+    const row = h('div', {class: 'trees'}); const sumEl = h('div', {class: 'sum', 'aria-live': 'polite'});
+    function draw(){
+      const order = [...sel].sort((a, b) => a - b);
+      row.replaceChildren(...T.map((v, i) => {
+        const trunk = h('div', {class: 'tr'}); for (let k = 0; k < v; k++) trunk.append(h('div', {class: 'b', style: {backgroundImage: url('log'), height: 'calc(min(9px, 1.6vw))'}}));
+        const o = order.indexOf(i);
+        return h('button', {class: 'tree' + (sel.has(i) ? ' sel' : ''), type: 'button', 'aria-pressed': sel.has(i) ? 'true' : 'false', 'aria-label': `Baum ${i + 1} mit ${v} Holzblöcken`, onclick: () => { sel.has(i) ? sel.delete(i) : sel.add(i); draw(); }},
+          h('span', {class: 'o'}, o >= 0 ? (o + 1) + '.' : ''), blk('leaves', 'lv'), trunk, h('span', {class: 'n'}, v));
+      }));
+      const s = order.reduce((t, i) => t + T[i], 0);
+      sumEl.textContent = order.length ? `Holz: ${order.map(i => T[i]).join(' + ')} = ${s}` : 'Holz: 0';
+    }
+    draw();
+    st.append(row, h('div', {class: 'groundrow', style: {backgroundImage: url('grass')}}), sumEl, h('p', {class: 'muted', style: 'margin:0;text-align:center'}, 'Tippe Bäume an, um sie auszuwählen. Noch einmal tippen nimmt sie wieder weg.'));
+    return {
+      async check(){
+        const a = [...sel].sort((x, y) => x - y);
+        if (!a.length) return {ok: false, msg: 'Tippe zuerst Bäume an.'};
+        for (let k = 1; k < a.length; k++) if (T[a[k]] >= T[a[k - 1]]) return {ok: false, msg: `Nach dem Baum mit ${T[a[k - 1]]} kommt der Baum mit ${T[a[k]]}. Der nächste Baum muss aber kleiner sein.`};
+        const s = a.reduce((t, i) => t + T[i], 0);
+        if (s < 26) return {ok: false, msg: `Das ist erlaubt und bringt ${s} Holzblöcke. Es geht aber noch mehr!`};
+        return {ok: true, msg: 'Mehr Holz geht nicht: 26 Blöcke.'};
+      },
+      solve(){ sel = new Set([2,5,6,7,8]); draw(); }
+    };
+  }
+});
+
+/* 12 — Die Wasserflut (Breitensuche) */
+LEVELS.push({ id: 12, biome: 'berge', diff: 1, topic: 'Ausbreitung', title: 'Die Wasserflut',
+  story: ['Oben links sprudelt eine Quelle.', 'Jede Minute fließt das Wasser in alle Nachbarfelder: nach oben, unten, links und rechts. Schräg geht nicht.', 'Durch Stein kann das Wasser nicht fließen.', 'Auf der Wiese stehen vier Hütten.'],
+  question: 'Welche Hütte wird als letzte nass?',
+  hint: 'Stell dir vor, du schreibst in jedes Feld, nach wie vielen Minuten das Wasser dort ankommt. 1, 2, 3 und so weiter.',
+  explain: ['Hütte 2 wird erst nach 14 Minuten nass. Sie sieht nah aus, aber das Wasser muss einen langen Umweg nehmen.', 'So breitet sich auch die Farbe aus, wenn du in einem Malprogramm den Farbeimer benutzt.', 'Informatiker nennen das Breitensuche: erst alle Felder mit Abstand 1, dann alle mit Abstand 2, und so weiter.', 'Navis finden so den kürzesten Weg.'],
+  build(st, api){
+    const M = ['W..#...1','.#.#.##.','.#...#2.','.###.##.','..3#....','#..#4#..'];
+    const W = 8, H = 6;
+    const dist = M.map(r => [...r].map(() => -1)); const q = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (M[y][x] === 'W'){ dist[y][x] = 0; q.push([x, y]); }
+    while (q.length){ const [x, y] = q.shift(); for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= H || M[ny][nx] === '#' || dist[ny][nx] >= 0) continue; dist[ny][nx] = dist[y][x] + 1; q.push([nx, ny]); } }
+    let sel = null;
+    const cs = 'min(48px, calc((100vw - 80px) / 8))';
+    const grid = h('div', {class: 'bgrid flood', style: `grid-template-columns:repeat(${W},auto);--cs:${cs};margin:0 auto`});
+    const cells = []; const huts = {};
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++){
+      const ch = M[y][x]; const c = h('div', {class: 'c b'}); c.style.backgroundImage = url(ch === '#' ? 'stone' : ch === 'W' ? 'water' : 'grassTop');
+      if (/[1-4]/.test(ch)){ const b = h('button', {class: 'hut', type: 'button', 'aria-label': 'Hütte ' + ch, onclick: () => { sel = ch; drawSel(); }}, img('hut'), h('span', {class: 'hn'}, ch)); huts[ch] = {b, d: dist[y][x]}; c.append(b); }
+      grid.append(c); cells.push(c);
+    }
+    function drawSel(){ Object.entries(huts).forEach(([k, v]) => { v.b.classList.toggle('sel', k === sel); v.b.setAttribute('aria-pressed', k === sel ? 'true' : 'false'); }); }
+    const showBtn = h('button', {class: 'btn', type: 'button', hidden: true, onclick: flood}, 'Zeig mir die Flut');
+    async function flood(){
+      cells.forEach(c => { c.classList.remove('wet'); c.querySelectorAll('.t').forEach(t => t.remove()); });
+      const max = Math.max(...dist.flat());
+      for (let t = 1; t <= max; t++){ for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (dist[y][x] === t){ const c = cells[y * W + x]; c.classList.add('wet'); if (!/[1-4]/.test(M[y][x])) c.append(h('span', {class: 't'}, t)); } await sleep(230); }
+    }
+    st.append(grid, h('div', {class: 'row', style: 'justify-content:center;gap:16px'}, h('span', {class: 'row', style: 'gap:6px'}, blk('water'), 'Quelle'), h('span', {class: 'row', style: 'gap:6px'}, blk('stone'), 'Stein'), h('span', {class: 'row', style: 'gap:6px'}, blk('grassTop'), 'Wiese')), h('div', {class: 'row', style: 'justify-content:center'}, showBtn));
+    st.querySelectorAll('.row > .row > .b').forEach(e => { e.style.width = '28px'; e.style.height = '28px'; });
+    return {
+      async check(o){
+        if (!sel) return {ok: false, msg: 'Tippe zuerst eine Hütte an.'};
+        if (!(o && o.silent)) showBtn.hidden = false;
+        if (sel === '2') return {ok: true, msg: 'Hütte 2 wird als letzte nass, nach 14 Minuten.'};
+        return {ok: false, msg: `Hütte ${sel} wird schon nach ${huts[sel].d} Minuten nass. Eine andere Hütte braucht noch länger.`};
+      },
+      solve(){ sel = '2'; drawSel(); }
+    };
+  }
+});
+
+/* 13 — Die Lampen-Pyramide (Logik) */
+LEVELS.push({ id: 13, biome: 'berge', diff: 2, topic: 'Logik', title: 'Die Lampen-Pyramide',
+  story: ['Bix hat eine Pyramide aus Lampen gebaut.', 'Unten sind vier Hebel. Einige hat Bix angeschaltet.', 'Jede Lampe hängt an den zwei Dingen direkt unter ihr.', 'Eine blaue Beide-Lampe leuchtet nur, wenn beide darunter an sind.', 'Eine gelbe Genau-eins-Lampe leuchtet nur, wenn genau eins von beiden an ist.'],
+  question: 'Welche Lampen leuchten? Tippe alle Lampen an, die leuchten.',
+  hint: 'Arbeite von unten nach oben. Erst die Reihe direkt über den Hebeln, dann die nächste Reihe.',
+  explain: ['Die Beide-Lampe heißt in der Informatik UND.', 'Die Genau-eins-Lampe heißt XOR, also entweder oder.', 'Aus solchen einfachen Schaltern bestehen alle Computer-Chips. In einem Handy arbeiten Milliarden davon.', 'Beim Biber hilft es, Zwischenergebnisse aufzuschreiben, Reihe für Reihe.'],
+  build(st, api){
+    let lev = [1, 0, 1, 1]; const LEV0 = lev.slice();
+    const LAY = [{y: 245, xs: [110, 200, 290], t: ['and','xor','and']}, {y: 140, xs: [155, 245], t: ['xor','xor']}, {y: 35, xs: [200], t: ['xor']}];
+    const LX = [65, 155, 245, 335], LY = 350, BS = 54;
+    function compute(l){ let below = l.slice(); const out = []; LAY.forEach(L => { const row = L.t.map((t, i) => t === 'and' ? (below[i] && below[i + 1] ? 1 : 0) : ((below[i] ^ below[i + 1]) ? 1 : 0)); out.push(row); below = row; }); return out; }
+    let pred = LAY.map(L => L.t.map(() => 0)); let reveal = false, free = false;
+    const svg = sv('svg', {viewBox: '0 -12 400 442', class: 'svgbox'});
+    function draw(){
+      const act = compute(lev); svg.replaceChildren();
+      const nodes = [LX.map(x => [x, LY])].concat(LAY.map(L => L.xs.map(x => [x, L.y])));
+      const vals = [lev].concat(act);
+      for (let li = 0; li < LAY.length; li++) LAY[li].xs.forEach((x, i) => {
+        [i, i + 1].forEach(j => { const [sx, sy] = nodes[li][j]; const on = reveal && vals[li][j]; svg.append(sv('line', {x1: sx, y1: sy - BS / 2, x2: x, y2: LAY[li].y + BS / 2, stroke: on ? 'var(--wire-on)' : 'var(--wire)', 'stroke-width': on ? 6 : 4})); });
+      });
+      LX.forEach((x, i) => {
+        const g = sv('g', {transform: `translate(${x},${LY})`});
+        g.append(sv('rect', {class: 'ring', x: -BS/2 - 3, y: -BS/2 - 3, width: BS + 6, height: BS + 6, fill: 'none', stroke: 'transparent', 'stroke-width': 0}),
+          sv('image', {href: TEX.stone, x: -BS/2, y: -BS/2, width: BS, height: BS, style: 'image-rendering:pixelated'}),
+          sv('line', {x1: 0, y1: 10, x2: lev[i] ? 14 : -14, y2: -16, stroke: '#5A3D22', 'stroke-width': 6, 'stroke-linecap': 'square'}),
+          sv('rect', {x: (lev[i] ? 14 : -14) - 6, y: -22, width: 12, height: 12, fill: lev[i] ? '#E2402B' : '#555'}),
+          sv('text', {x: 0, y: BS/2 + 20, 'text-anchor': 'middle', class: 'lbl'}, lev[i] ? 'an' : 'aus'));
+        if (free) svgBtn(g, `Hebel ${i + 1}: ${lev[i] ? 'an' : 'aus'}. Umschalten.`, () => { lev[i] ^= 1; draw(); });
+        svg.append(g);
+      });
+      LAY.forEach((L, li) => L.xs.forEach((x, i) => {
+        const isOn = act[li][i], p = pred[li][i], t = L.t[i];
+        const g = sv('g', {transform: `translate(${x},${L.y})`});
+        const frame = t === 'and' ? '#3E7BD6' : '#E2B010';
+        if (!reveal && p) for (let k = 0; k < 8; k++){ const a = k * Math.PI / 4; g.append(sv('line', {x1: Math.cos(a) * 36, y1: Math.sin(a) * 36, x2: Math.cos(a) * 46, y2: Math.sin(a) * 46, stroke: 'var(--accent)', 'stroke-width': 5, 'stroke-linecap': 'round'})); }
+        if (reveal && isOn) g.append(sv('circle', {r: 44, fill: '#FFD54A', opacity: .45}));
+        g.append(sv('rect', {class: 'ring', x: -BS/2 - 5, y: -BS/2 - 5, width: BS + 10, height: BS + 10, fill: frame, rx: 3}),
+          sv('image', {href: (reveal ? isOn : p) ? TEX.lampOn : TEX.lampOff, x: -BS/2, y: -BS/2, width: BS, height: BS, style: 'image-rendering:pixelated', opacity: (!reveal && p) ? .85 : 1}),
+          sv('rect', {x: -BS/2 - 14, y: -BS/2 - 14, width: 22, height: 22, fill: frame, stroke: 'var(--panel)', 'stroke-width': 2, rx: 3}),
+          sv('text', {x: -BS/2 - 3, y: -BS/2 + 3, 'text-anchor': 'middle', class: 'num', 'font-size': 15, fill: t === 'and' ? '#FFFFFF' : '#2E1F00'}, t === 'and' ? '2' : '1'));
+        if (!reveal) svgBtn(g, `${t === 'and' ? 'Beide-Lampe' : 'Genau-eins-Lampe'}, Reihe ${li + 1}, Nummer ${i + 1}: ${p ? 'leuchtet' : 'leuchtet nicht'}. Umschalten.`, () => { pred[li][i] ^= 1; draw(); });
+        g.setAttribute('aria-pressed', p ? 'true' : 'false');
+        svg.append(g);
+      }));
+    }
+    draw();
+    const legend = h('div', {class: 'stack', style: 'gap:8px'},
+      h('div', {class: 'row', style: 'flex-wrap:nowrap'}, h('span', {style: 'width:32px;height:32px;flex:none;background:#3E7BD6;color:#fff;display:grid;place-items:center;border-radius:3px;font-family:var(--f-pix);font-weight:700'}, '2'), h('span', {style: 'flex:1;min-width:0'}, 'Blaue Beide-Lampe mit der 2: leuchtet, wenn beide darunter an sind.'), sayBtn('Blaue Beide-Lampe mit der 2: leuchtet, wenn beide darunter an sind.')),
+      h('div', {class: 'row', style: 'flex-wrap:nowrap'}, h('span', {style: 'width:32px;height:32px;flex:none;background:#E2B010;color:#2E1F00;display:grid;place-items:center;border-radius:3px;font-family:var(--f-pix);font-weight:700'}, '1'), h('span', {style: 'flex:1;min-width:0'}, 'Gelbe Genau-eins-Lampe mit der 1: leuchtet, wenn genau eins darunter an ist.'), sayBtn('Gelbe Genau-eins-Lampe mit der 1: leuchtet, wenn genau eins darunter an ist.')));
+    const note = h('p', {class: 'muted', style: 'margin:0;text-align:center'}, 'Tippe eine Lampe an: Strahlen heißt, du glaubst, sie leuchtet.');
+    st.append(legend, svg, note);
+    return {
+      async check(o){
+        const act = compute(LEV0); let wrong = 0;
+        LAY.forEach((L, li) => L.t.forEach((t, i) => { if (pred[li][i] !== act[li][i]) wrong++; }));
+        if (wrong) return {ok: false, msg: wrong === 1 ? 'Eine Lampe ist noch falsch.' : `${wrong} Lampen sind noch falsch.`};
+        if (!(o && o.silent)){ reveal = true; free = true; draw(); note.textContent = 'Jetzt darfst du die Hebel selbst umschalten und ausprobieren.'; }
+        return {ok: true, msg: 'Genau diese Lampen leuchten. Jetzt kannst du unten die Hebel selbst umschalten.'};
+      },
+      solve(){ pred = compute(LEV0).map(r => r.slice()); draw(); }
+    };
+  }
+});
+
+/* 14 — Bauer Bix pflanzt (Graph-Färbung) */
+LEVELS.push({ id: 14, biome: 'berge', diff: 3, topic: 'Graphen färben', title: 'Bauer Bix pflanzt',
+  story: ['Bix hat sieben Felder. Die Wege zeigen, welche Felder Nachbarn sind.', 'Auf jedes Feld kommt eine Pflanze.', 'Nachbarfelder dürfen nicht die gleiche Pflanze haben, sonst wandern die Käfer hinüber.', 'Bix möchte möglichst wenige verschiedene Sorten kaufen.'],
+  question: 'Bepflanze alle Felder. Benutze so wenige Sorten wie möglich.',
+  hint: 'Die Felder 1, 2 und 3 sind alle miteinander verbunden. Wie viele Sorten brauchst du also mindestens?',
+  explain: ['Drei Felder, die alle miteinander verbunden sind, brauchen drei verschiedene Pflanzen. Weniger als drei geht also nicht.', 'Mit drei Sorten klappt es für alle sieben Felder.', 'Das heißt in der Informatik Graph-Färbung.', 'So plant man auch Stundenpläne und Prüfungstermine, die sich nicht in die Quere kommen dürfen.'],
+  build(st, api){
+    const N = [[200,48],[110,128],[290,128],[80,238],[210,228],[110,332],[300,322]];
+    const E = [[0,1],[0,2],[1,2],[1,3],[2,4],[3,4],[3,5],[4,6],[5,6],[2,6]];
+    const PL = [{k: 'weizen', n: 'Weizen'}, {k: 'karotte', n: 'Karotte'}, {k: 'kohl', n: 'Kohl'}, {k: 'ruebe', n: 'Rübe'}];
+    let col = Array(7).fill(null), pick = 0;
+    const svg = sv('svg', {viewBox: '0 0 400 385', class: 'svgbox'});
+    const info = h('p', {class: 'sum', style: 'margin:0', 'aria-live': 'polite'});
+    const pal = h('div', {class: 'palette'});
+    function conflicts(){ return E.filter(([a, b]) => col[a] !== null && col[a] === col[b]); }
+    function draw(){
+      svg.replaceChildren(); const bad = conflicts();
+      E.forEach(([a, b]) => { const isBad = bad.some(([x, y]) => x === a && y === b); svg.append(sv('line', {x1: N[a][0], y1: N[a][1], x2: N[b][0], y2: N[b][1], stroke: isBad ? 'var(--bad)' : '#9B6A3F', 'stroke-width': isBad ? 8 : 10, 'stroke-dasharray': isBad ? '10 6' : null, 'stroke-linecap': 'round'})); });
+      N.forEach(([x, y], i) => {
+        const g = sv('g', {transform: `translate(${x},${y})`});
+        g.append(sv('rect', {class: 'ring', x: -33, y: -33, width: 66, height: 66, fill: 'var(--edge2)', rx: 3}), sv('image', {href: TEX.farmland, x: -30, y: -30, width: 60, height: 60, style: 'image-rendering:pixelated'}));
+        if (col[i] !== null) g.append(sv('image', {href: TEX[PL[col[i]].k], x: -24, y: -26, width: 48, height: 48, style: 'image-rendering:pixelated'}));
+        g.append(sv('rect', {x: -40, y: -42, width: 24, height: 24, fill: 'var(--accent)', rx: 2}), sv('text', {x: -28, y: -24, 'text-anchor': 'middle', class: 'num', 'font-size': 17, fill: '#2E1F00'}, i + 1));
+        svgBtn(g, `Feld ${i + 1}: ${col[i] === null ? 'leer' : PL[col[i]].n}. Bepflanzen mit ${pick === null ? 'nichts' : PL[pick].n}.`, () => { col[i] = pick; draw(); });
+        svg.append(g);
+      });
+      const used = new Set(col.filter(c => c !== null)).size;
+      info.textContent = `Benutzte Sorten: ${used}` + (bad.length ? ' · Achtung: rote Wege!' : '');
+      pal.replaceChildren(...PL.map((p, i) => h('button', {class: 'pal' + (pick === i ? ' sel' : ''), type: 'button', 'aria-pressed': pick === i ? 'true' : 'false', onclick: () => { pick = i; draw(); }}, img(p.k), p.n)),
+        h('button', {class: 'pal' + (pick === null ? ' sel' : ''), type: 'button', 'aria-pressed': pick === null ? 'true' : 'false', onclick: () => { pick = null; draw(); }}, blk('farmland'), 'Leer machen'));
+    }
+    draw();
+    st.append(h('p', {class: 'muted', style: 'margin:0;text-align:center'}, 'Wähle unten eine Pflanze. Tippe dann auf ein Feld.'), pal, svg, info);
+    return {
+      async check(){
+        if (col.some(c => c === null)) return {ok: false, msg: 'Auf jedes Feld muss eine Pflanze.'};
+        if (conflicts().length) return {ok: false, msg: 'Zwei Nachbarfelder haben die gleiche Pflanze. Schau auf die roten Wege.'};
+        const used = new Set(col).size;
+        if (used > 3) return {ok: false, msg: `Das ist erlaubt, aber du benutzt ${used} Sorten. Es geht mit weniger.`};
+        return {ok: true, msg: 'Drei Sorten reichen, weniger geht nicht.'};
+      },
+      solve(){ col = [0,1,2,0,1,1,0]; draw(); }
+    };
+  }
+});
+
+/* 15 — Der schnellste Weg (kürzester Weg) */
+LEVELS.push({ id: 15, biome: 'berge', diff: 3, topic: 'Kürzester Weg', title: 'Der schnellste Weg',
+  story: ['Bix will mit der Lore vom Dorf zur Burg fahren.', 'An jeder Schiene steht, wie viele Minuten die Fahrt dauert.', 'An jedem Bahnhof kann er sofort umsteigen.'],
+  question: 'Tippe die Bahnhöfe der Reihe nach an, damit Bix so schnell wie möglich bei der Burg ist.',
+  hint: 'Der Weg mit den wenigsten Bahnhöfen ist nicht immer der schnellste. Rechne für jeden Bahnhof aus, wie schnell man ihn vom Dorf aus erreichen kann.',
+  explain: ['Der schnellste Weg geht über Dorf, Mine, Turm, See und Burg. Das dauert 3 plus 2 plus 3 plus 2, also 10 Minuten.', 'Der Weg über die Mühle sieht am Anfang gut aus, dauert aber 12 Minuten.', 'Navigations-Apps lösen diese Aufgabe jeden Tag millionenfach.', 'Ein berühmtes Verfahren dafür heißt Dijkstra-Algorithmus, nach dem Informatiker Edsger Dijkstra.'],
+  build(st, api){
+    const NAMES = ['Dorf','Mühle','Mine','See','Turm','Wald','Burg'];
+    const ICONS = ['hut','planks','coal','water','stone','leaves','bricks'];
+    const P = [[45,180],[140,62],[140,298],[320,62],[230,180],[320,298],[398,180]];
+    const E = [[0,1,2],[0,2,3],[1,3,8],[1,4,5],[2,4,2],[2,5,7],[3,6,2],[4,3,3],[4,5,4],[5,6,3]];
+    const w = (a, b) => { const e = E.find(([x, y]) => (x === a && y === b) || (x === b && y === a)); return e ? e[2] : null; };
+    let route = [0];
+    const svg = sv('svg', {viewBox: '0 0 440 360', class: 'svgbox'});
+    const info = h('p', {class: 'sum', style: 'margin:0', 'aria-live': 'polite'});
+    const total = () => route.reduce((t, n, i) => i ? t + w(route[i - 1], n) : 0, 0);
+    function inRoute(a, b){ for (let i = 1; i < route.length; i++){ const x = route[i - 1], y = route[i]; if ((x === a && y === b) || (x === b && y === a)) return true; } return false; }
+    function draw(){
+      svg.replaceChildren();
+      E.forEach(([a, b, m]) => {
+        const on = inRoute(a, b); const [x1, y1] = P[a], [x2, y2] = P[b];
+        svg.append(sv('line', {x1, y1, x2, y2, stroke: '#8A6A44', 'stroke-width': 14, 'stroke-dasharray': '4 7'}), sv('line', {x1, y1, x2, y2, stroke: on ? 'var(--accent)' : 'var(--wire)', 'stroke-width': on ? 7 : 4}));
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+        svg.append(sv('circle', {cx: mx, cy: my, r: 16, fill: 'var(--panel)', stroke: on ? 'var(--accent)' : 'var(--edge2)', 'stroke-width': 3}), sv('text', {x: mx, y: my + 7, 'text-anchor': 'middle', class: 'num', 'font-size': 19}, m));
+      });
+      P.forEach(([x, y], i) => {
+        const g = sv('g', {transform: `translate(${x},${y})`}); const inR = route.includes(i);
+        g.append(sv('rect', {class: 'ring', x: -27, y: -27, width: 54, height: 54, fill: inR ? 'var(--accent)' : 'var(--edge2)', rx: 3}));
+        if (ICONS[i] === 'hut') g.append(sv('image', {href: TEX.grassTop, x: -24, y: -24, width: 48, height: 48, style: 'image-rendering:pixelated'}), sv('image', {href: TEX.hut, x: -20, y: -22, width: 40, height: 40, style: 'image-rendering:pixelated'}));
+        else g.append(sv('image', {href: TEX[ICONS[i]], x: -24, y: -24, width: 48, height: 48, style: 'image-rendering:pixelated'}));
+        if (i === 6) g.append(sv('rect', {x: 2, y: -40, width: 3, height: 18, fill: '#4A2E17'}), sv('rect', {x: 5, y: -40, width: 14, height: 9, fill: '#C2412D'}));
+        g.append(sv('text', {x: 0, y: 46, 'text-anchor': 'middle', class: 'lbl'}, NAMES[i]));
+        svgBtn(g, `Bahnhof ${NAMES[i]}`, () => tap(i));
+        svg.append(g);
+      });
+      info.textContent = `Dein Weg: ${route.map(i => NAMES[i]).join(' → ')} · ${total()} Minuten`;
+    }
+    function tap(i){
+      const last = route[route.length - 1];
+      if (i === last) return;
+      const k = route.indexOf(i); if (k >= 0){ route = route.slice(0, k + 1); draw(); return; }
+      if (w(last, i) === null){ toast(`Von ${NAMES[last]} gibt es keine Schiene nach ${NAMES[i]}.`); return; }
+      route.push(i); draw();
+    }
+    draw();
+    st.append(svg, info, h('div', {class: 'row', style: 'justify-content:center'},
+      h('button', {class: 'btn small', type: 'button', onclick: () => { if (route.length > 1) route.pop(); draw(); }, html: ICON.back + '<span>Einen Bahnhof zurück</span>'}),
+      h('button', {class: 'btn small', type: 'button', onclick: () => { route = [0]; draw(); }}, 'Neu anfangen')));
+    return {
+      async check(){
+        if (route[route.length - 1] !== 6) return {ok: false, msg: 'Bix ist noch nicht bei der Burg.'};
+        const t = total();
+        if (t > 10) return {ok: false, msg: `Dein Weg dauert ${t} Minuten. Es gibt einen schnelleren.`};
+        return {ok: true, msg: 'Schneller als 10 Minuten geht es nicht.'};
+      },
+      solve(){ route = [0,2,4,3,6]; draw(); }
+    };
+  }
+});
+
+const byId = id => LEVELS.find(l => l.id === id);
+
+/* =========================================================
+   ANSICHTEN
+   ========================================================= */
+const view = $('#view');
+let skipHash = null;
+function setHash(r){ try { if (location.hash.slice(1) !== r){ skipHash = r; location.hash = r; } } catch (e) { skipHash = null; } }
+window.addEventListener('hashchange', () => { const r = location.hash.slice(1); if (r === skipHash){ skipHash = null; return; } route(r, false); });
+function route(r, fromClick){
+  Reader.stop();
+  if (Test.on && !/^probe/.test(r || '')) endTimer();
+  const m = /^aufgabe-(\d+)$/.exec(r || '');
+  if (m && byId(+m[1])) showLevel(byId(+m[1]), fromClick);
+  else if (r === 'tipps') showTips(fromClick);
+  else if (r === 'probe') showProbeStart();
+  else showHome(fromClick);
+}
+function nav(r){ setHash(r); route(r, true); window.scrollTo({top: 0, behavior: 'auto'}); }
+function updateGems(){ $('#gem-n').textContent = Object.keys(store.solved).filter(k => store.solved[k]).length; }
+
+function biberDays(){
+  const now = new Date(); const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const start = new Date(2026, 10, 9), end = new Date(2026, 10, 20);
+  if (t0 < start){ const d = Math.round((start - t0) / 864e5); return {pre: true, d}; }
+  if (t0 <= end) return {now: true};
+  return {after: true};
+}
+
+function showHome(fromClick){
+  const intro = h('div', {class: 'readable'}, para(['Hallo! Ich bin Bix, der Block-Biber.', 'Hier übst du für den Informatik-Biber.', 'Jede Aufgabe ist ein kleines Spiel. Für jede gelöste Aufgabe bekommst du einen Kristall.', 'Tippe auf Vorlesen, dann lese ich dir alles vor. Du kannst auch auf einen einzelnen Satz tippen.']));
+  const bd = biberDays();
+  const cd = bd.pre ? h('div', {class: 'countdown'}, h('b', {}, bd.d), h('span', {}, bd.d === 1 ? 'Tag bis zu den Biberwochen (9. bis 20. November 2026)' : 'Tage bis zu den Biberwochen (9. bis 20. November 2026)'))
+    : bd.now ? h('div', {class: 'countdown'}, h('b', {}, 'Jetzt!'), h('span', {}, 'Die Biberwochen laufen bis zum 20. November. Viel Erfolg!'))
+    : h('div', {class: 'countdown'}, h('span', {}, 'Die Biberwochen 2026 sind vorbei. Üben macht trotzdem Spaß.'));
+  const sections = BIOMES.map(B => {
+    const tiles = LEVELS.filter(l => l.biome === B.k).map(l => {
+      const done = !!store.solved[l.id];
+      return h('button', {class: 'tile' + (done ? ' done' : ''), type: 'button', onclick: () => nav('aufgabe-' + l.id), 'aria-label': `Aufgabe ${l.id}: ${l.title}, ${DIFF[l.diff]}${done ? ', geschafft' : ''}`},
+        h('span', {class: 'num b', style: {backgroundImage: url(B.tile)}}, l.id),
+        h('span', {class: 't'}, l.title),
+        h('span', {class: 'm'}, h('span', {class: 'pips', 'aria-hidden': 'true'}, ...[1,2,3].map(k => h('i', {class: k <= l.diff ? 'f' : ''}))), h('span', {}, DIFF[l.diff])),
+        h('span', {class: 'm'}, l.topic),
+        done ? img('gem', 'gem', 'geschafft') : null);
+    });
+    return h('section', {class: 'biome'}, h('div', {class: 'biome-band', style: {backgroundImage: url(B.band)}}),
+      h('div', {class: 'panel'}, h('div', {class: 'biome-head'}, h('h2', {}, B.name), h('span', {class: 'muted'}, B.topic)), h('div', {class: 'tiles'}, tiles)));
+  });
+  const last = store.probe;
+  const probe = h('section', {class: 'panel probe'}, img('chest', '', ''),
+    h('div', {class: 'stack', style: 'gap:8px'},
+      h('h2', {style: 'font-size:1.4rem'}, 'Probe-Biber'),
+      h('div', {class: 'readable'}, para(['12 Aufgaben in 35 Minuten, genau wie im echten Wettbewerb für Klasse 5 und 6.', 'Du siehst erst am Ende, was richtig war.'])),
+      last ? h('p', {class: 'muted', style: 'margin:0'}, `Letztes Mal: ${last.right} von ${last.total} richtig.`) : null,
+      h('div', {class: 'row'}, h('button', {class: 'btn go', type: 'button', onclick: () => nav('probe')}, 'Probe-Biber starten'))));
+  view.replaceChildren(
+    h('section', {class: 'hero'}, img('bix', 'bix', 'Bix, der Block-Biber'),
+      h('div', {class: 'panel bubble'}, intro, h('div', {class: 'row'}, readBtn(() => [intro]), h('button', {class: 'btn', type: 'button', onclick: () => nav('tipps')}, 'So läuft der Biber')), cd)),
+    ...sections, probe,
+    h('div', {class: 'ground', style: {backgroundImage: `${url('grass')}, ${url('dirt')}`, backgroundPosition: '0 0, 0 28px'}}),
+    h('p', {class: 'foot'}, 'Alle Aufgaben hier sind neu geschrieben, angelehnt an die Themen des ', h('a', {href: 'https://bwinf.de/biber/', target: '_blank', rel: 'noopener'}, 'Informatik-Biber'), ' (BWINF). Dies ist kein offizielles Angebot von BWINF. Dein Fortschritt wird nur in diesem Browser gespeichert.'));
+  document.title = 'Biber-Blockwelt';
+}
+
+function levelHead(L){
+  const B = BIOMES.find(b => b.k === L.biome);
+  return h('div', {class: 'lv-title'}, h('span', {class: 'num b', style: {backgroundImage: url(B.tile), width: '44px', height: '44px', display: 'grid', placeItems: 'center', fontFamily: 'var(--f-pix)', fontWeight: 700, color: '#fff', textShadow: '2px 2px 0 rgba(0,0,0,.45)', fontSize: '1.3rem', border: '2px solid rgba(0,0,0,.35)'}}, L.id),
+    h('h1', {}, L.title),
+    h('span', {class: 'chip'}, h('span', {class: 'pips', 'aria-hidden': 'true'}, ...[1,2,3].map(k => h('i', {class: k <= L.diff ? 'f' : ''}))), DIFF[L.diff]),
+    h('span', {class: 'chip'}, B.name + ' · ' + L.topic));
+}
+function storyPanel(L){
+  const txt = h('div', {class: 'readable'}, para(L.story), para([L.question], 'q'));
+  const panel = h('section', {class: 'panel story'}, img('bix', 'bix', ''), h('div', {}, txt, h('div', {class: 'row'}, readBtn(() => [txt]))));
+  return {panel, txt};
+}
+
+function showLevel(L, fromClick){
+  const idx = LEVELS.indexOf(L);
+  const {panel: story, txt} = storyPanel(L);
+  const stagePanel = h('section', {class: 'panel stage', 'aria-label': 'Spielfeld'});
+  let inst, attempts = 0;
+  const fbBox = h('div'), hintBox = h('div');
+  function mount(){ const stIn = h('div', {class: 'stage-in'}); stagePanel.replaceChildren(stIn); inst = L.build(stIn, {test: false}); fbBox.replaceChildren(); }
+  mount();
+  const checkBtn = h('button', {class: 'btn go', type: 'button', html: ICON.check + '<span>Prüfen</span>'});
+  const hintBtn = h('button', {class: 'btn', type: 'button', html: ICON.bulb + '<span>Tipp</span>'});
+  const resetBtn = h('button', {class: 'btn', type: 'button', html: ICON.reset + '<span>Neu starten</span>'});
+  function showHint(read){
+    const t = h('div', {class: 'readable'}, para([L.hint]));
+    hintBox.replaceChildren(h('section', {class: 'panel hintbox'}, h('div', {class: 'boxlbl'}, 'Tipp von Bix'), t, h('div', {class: 'row', style: 'margin-top:8px'}, readBtn(() => [t]))));
+    if (read) Reader.read([t]);
+  }
+  hintBtn.addEventListener('click', () => showHint(store.settings.auto));
+  resetBtn.addEventListener('click', () => { Reader.stop(); mount(); attempts = 0; });
+  function explainBlock(){
+    const t = h('div', {class: 'readable'}, para(L.explain));
+    return h('div', {class: 'pro'}, h('h3', {}, 'Profi-Wissen'), t, h('div', {class: 'row', style: 'margin-top:8px'}, readBtn(() => [t], 'Erklärung vorlesen')));
+  }
+  function nextBtn(){ const nx = LEVELS[idx + 1]; return nx ? h('button', {class: 'btn go', type: 'button', onclick: () => nav('aufgabe-' + nx.id)}, 'Nächste Aufgabe: ' + nx.title) : h('button', {class: 'btn go', type: 'button', onclick: () => nav('welt')}, 'Zur Weltkarte'); }
+  checkBtn.addEventListener('click', async () => {
+    Reader.stop(); checkBtn.disabled = true; let r;
+    try { r = await inst.check({}); } catch (e) { r = {ok: false, msg: 'Da ist etwas schiefgelaufen. Probier es noch einmal.'}; }
+    checkBtn.disabled = false; attempts++;
+    let panel, head;
+    if (r.ok){
+      const first = !store.solved[L.id]; store.solved[L.id] = true; save(); updateGems(); chime(); celebrate();
+      const t = h('div', {class: 'readable'}, para(['Super, richtig!'].concat(r.msg ? [r.msg] : []).concat(first ? ['Du bekommst einen Kristall.'] : [])));
+      head = t;
+      panel = h('section', {class: 'panel fb good', role: 'status'}, h('h2', {}, 'Geschafft!'), t, explainBlock(), h('div', {class: 'row', style: 'margin-top:12px'}, nextBtn(), h('button', {class: 'btn', type: 'button', onclick: () => nav('welt')}, 'Zur Weltkarte')));
+    } else if (r.progress){
+      const t = h('div', {class: 'readable'}, para([r.msg])); head = t;
+      panel = h('section', {class: 'panel fb good', role: 'status'}, h('h2', {}, 'Richtig!'), t);
+    } else {
+      const t = h('div', {class: 'readable'}, para(['Noch nicht ganz.', r.msg, attempts >= 2 ? 'Du schaffst das! Hol dir einen Tipp oder schau dir die Erklärung an.' : 'Probier es noch einmal.'].filter(Boolean)));
+      head = t;
+      const extra = h('div');
+      panel = h('section', {class: 'panel fb bad', role: 'status'}, h('h2', {}, 'Fast!'), t,
+        attempts >= 2 ? h('div', {class: 'row', style: 'margin-top:10px'}, h('button', {class: 'btn', type: 'button', onclick: () => showHint(store.settings.auto), html: ICON.bulb + '<span>Tipp zeigen</span>'}), h('button', {class: 'btn', type: 'button', onclick: () => { extra.replaceChildren(explainBlock()); }}, 'Erklärung ansehen')) : null, extra);
+    }
+    fbBox.replaceChildren(panel);
+    panel.scrollIntoView({block: 'nearest', behavior: RM ? 'auto' : 'smooth'});
+    if (store.settings.auto) Reader.read([head]);
+  });
+  view.replaceChildren(
+    h('div', {class: 'lv-top'}, h('button', {class: 'btn small', type: 'button', onclick: () => nav('welt'), html: ICON.back + '<span>Weltkarte</span>'}), h('span', {class: 'muted'}, `Aufgabe ${L.id} von ${LEVELS.length}`)),
+    levelHead(L),
+    h('div', {class: 'stack', style: 'margin-top:14px'}, story, stagePanel, h('div', {class: 'actions'}, resetBtn, hintBtn, checkBtn), hintBox, fbBox));
+  document.title = L.title + ' · Biber-Blockwelt';
+  if (fromClick && store.settings.auto) Reader.read([txt]);
+}
+
+/* ---------- Probe-Biber ---------- */
+const Test = {on: false, list: [], idx: 0, inst: {}, els: {}, visited: {}, start: 0, dur: 35 * 60 * 1000, tid: null, hideTime: false};
+function endTimer(){ if (Test.tid){ clearInterval(Test.tid); Test.tid = null; } Test.on = false; }
+function showProbeStart(){
+  const t = h('div', {class: 'readable'}, para(['Gleich bekommst du 12 Aufgaben: 4 leichte, 4 mittlere und 4 schwere.', 'Du hast 35 Minuten Zeit. Die Uhr läuft oben mit.', 'Du kannst zwischen den Aufgaben hin und her springen.', 'Erst wenn du abgibst, siehst du, was richtig war.']));
+  view.replaceChildren(
+    h('div', {class: 'lv-top'}, h('button', {class: 'btn small', type: 'button', onclick: () => nav('welt'), html: ICON.back + '<span>Weltkarte</span>'})),
+    h('div', {class: 'lv-title'}, h('h1', {}, 'Probe-Biber')),
+    h('section', {class: 'panel', style: 'margin-top:14px'}, t, h('div', {class: 'row', style: 'margin-top:12px'}, readBtn(() => [t]), h('button', {class: 'btn go', type: 'button', onclick: startTest}, 'Los geht’s'))));
+}
+function startTest(){
+  const pick = d => { const a = LEVELS.filter(l => l.diff === d).map(l => l.id); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a.slice(0, 4).sort((x, y) => x - y); };
+  Object.assign(Test, {on: true, list: [...pick(1), ...pick(2), ...pick(3)], idx: 0, inst: {}, els: {}, visited: {}, start: Date.now()});
+  Test.list.forEach(id => { const L = byId(id); const {panel} = storyPanel(L); const stIn = h('div', {class: 'stage-in'}); const stage = h('section', {class: 'panel stage'}, stIn); Test.inst[id] = L.build(stIn, {test: true}); Test.els[id] = h('div', {class: 'stack'}, levelHead(L), panel, stage); });
+  renderTest();
+  if (Test.tid) clearInterval(Test.tid);
+  Test.tid = setInterval(tick, 1000);
+}
+let timerEl = null, barEl = null;
+function tick(){
+  if (!Test.on) return;
+  const left = Math.max(0, Test.dur - (Date.now() - Test.start));
+  if (timerEl){ const m = Math.floor(left / 60000), s = Math.floor(left / 1000) % 60; timerEl.textContent = Test.hideTime ? 'Uhr versteckt' : `${m}:${String(s).padStart(2, '0')}`; }
+  if (barEl) barEl.style.width = (left / Test.dur * 100) + '%';
+  if (left <= 0) finishTest(true);
+}
+function renderTest(){
+  Reader.stop();
+  const id = Test.list[Test.idx];
+  timerEl = h('span'); barEl = h('i');
+  const hideBtn = h('button', {class: 'btn small', type: 'button', onclick: () => { Test.hideTime = !Test.hideTime; hideBtn.textContent = Test.hideTime ? 'Uhr zeigen' : 'Uhr verstecken'; tick(); }}, Test.hideTime ? 'Uhr zeigen' : 'Uhr verstecken');
+  const dots = h('div', {class: 'dots'}, ...Test.list.map((lid, i) => h('button', {type: 'button', class: (i === Test.idx ? 'cur ' : '') + (Test.visited[lid] ? 'ans' : ''), 'aria-label': `Aufgabe ${i + 1}`, onclick: () => { Test.visited[id] = true; Test.idx = i; renderTest(); }}, i + 1)));
+  const last = Test.idx === Test.list.length - 1;
+  view.replaceChildren(
+    h('section', {class: 'panel', style: 'margin-top:16px'}, h('div', {class: 'timer'}, timerEl, h('div', {class: 'bar'}, barEl), hideBtn), h('div', {style: 'margin-top:10px'}, dots)),
+    h('div', {style: 'margin-top:14px'}, Test.els[id]),
+    h('div', {class: 'actions', style: 'margin-top:14px'},
+      Test.idx > 0 ? h('button', {class: 'btn', type: 'button', onclick: () => { Test.visited[id] = true; Test.idx--; renderTest(); }, html: ICON.back + '<span>Vorige</span>'}) : null,
+      h('span', {class: 'grow'}),
+      last ? h('button', {class: 'btn gold', type: 'button', onclick: () => { Test.visited[id] = true; confirmFinish(); }}, 'Abgeben') : h('button', {class: 'btn go', type: 'button', onclick: () => { Test.visited[id] = true; Test.idx++; renderTest(); window.scrollTo({top: 0}); }}, 'Weiter zur nächsten Aufgabe')),
+    h('div', {id: 'confirm'}));
+  tick();
+  if (store.settings.auto){ const t = Test.els[id].querySelector('.readable'); if (t) Reader.read([t]); }
+}
+function confirmFinish(){
+  const box = $('#confirm'); if (!box) return;
+  box.replaceChildren(h('section', {class: 'panel', style: 'margin-top:14px'}, h('p', {style: 'margin:0 0 10px;font-weight:700'}, 'Willst du wirklich abgeben?'),
+    h('div', {class: 'row'}, h('button', {class: 'btn gold', type: 'button', onclick: () => finishTest(false)}, 'Ja, abgeben'), h('button', {class: 'btn', type: 'button', onclick: () => box.replaceChildren()}, 'Nein, weiter knobeln'))));
+  box.scrollIntoView({block: 'nearest'});
+}
+async function finishTest(timeUp){
+  if (!Test.on) return; endTimer(); Reader.stop();
+  const res = [];
+  for (const id of Test.list){ let ok = false; try { ok = !!(await Test.inst[id].check({silent: true})).ok; } catch (e) {} res.push({L: byId(id), ok}); }
+  const right = res.filter(r => r.ok).length;
+  store.probe = {right, total: res.length, at: Date.now()}; save();
+  const used = Math.min(Test.dur, Date.now() - Test.start); const mm = Math.round(used / 60000);
+  const per = [1,2,3].map(d => { const a = res.filter(r => r.L.diff === d); return `${DIFF[d]}: ${a.filter(r => r.ok).length} von ${a.length}`; });
+  const t = h('div', {class: 'readable'}, para([(timeUp ? 'Die Zeit ist um. ' : '') + `Du hast ${right} von ${res.length} Aufgaben richtig.`, `Davon ${per.join(', ')}.`, `Du hast ungefähr ${plural(mm, 'Minute', 'Minuten')} gebraucht.`, right >= 9 ? 'Super! Du bist bestens vorbereitet.' : right >= 6 ? 'Gut gemacht! Übe die anderen Aufgaben noch einmal in Ruhe.' : 'Ein guter Anfang. Übe die Aufgaben in Ruhe und mach den Probe-Biber dann noch einmal.']));
+  view.replaceChildren(
+    h('div', {class: 'lv-title', style: 'margin-top:16px'}, h('h1', {}, 'Dein Probe-Biber')),
+    h('section', {class: 'panel', style: 'margin-top:14px'}, t, h('div', {class: 'row', style: 'margin-top:10px'}, readBtn(() => [t]))),
+    h('section', {class: 'panel', style: 'margin-top:14px'}, h('div', {class: 'res'}, ...res.flatMap(r => [h('span', {class: r.ok ? 'ok' : 'no'}, r.ok ? 'richtig' : 'falsch'), h('span', {}, `${r.L.id}. ${r.L.title} (${DIFF[r.L.diff]})`), h('button', {class: 'btn small', type: 'button', onclick: () => nav('aufgabe-' + r.L.id)}, 'Üben')]))),
+    h('div', {class: 'row', style: 'margin-top:14px'}, h('button', {class: 'btn go', type: 'button', onclick: () => nav('probe')}, 'Noch einmal'), h('button', {class: 'btn', type: 'button', onclick: () => nav('welt')}, 'Zur Weltkarte')));
+  if (store.settings.auto) Reader.read([t]);
+}
+
+/* ---------- Tipps ---------- */
+function showTips(fromClick){
+  const a = h('div', {class: 'readable'}, para(['Die Biberwochen sind vom 9. bis zum 20. November 2026. Du machst in der Schule mit, am Computer oder Tablet.', 'In Klasse 5 und 6 gibt es 12 Aufgaben. Du hast dafür 35 Minuten Zeit.', 'Es gibt 4 leichte, 4 mittlere und 4 schwere Aufgaben. Du brauchst kein Vorwissen.', 'Ihr dürft zu zweit arbeiten. Dann kann dir dein Partner oder deine Partnerin die Aufgaben vorlesen.']));
+  const b = h('div', {class: 'readable'}, para(['Lies oder hör jede Aufgabe zweimal.', 'Schau dir das Beispiel in der Aufgabe genau an. Es erklärt die Regel.', 'Probiere aus. Viele Biber-Aufgaben kann man anklicken und testen.', 'Hängst du fest? Mach erst eine andere Aufgabe und komm später zurück.', 'Niemand muss alles schaffen. Auch Profis lassen mal eine schwere Aufgabe aus.']));
+  view.replaceChildren(
+    h('div', {class: 'lv-top'}, h('button', {class: 'btn small', type: 'button', onclick: () => nav('welt'), html: ICON.back + '<span>Weltkarte</span>'})),
+    h('div', {class: 'lv-title'}, h('h1', {}, 'So läuft der Biber')),
+    h('div', {class: 'stack', style: 'margin-top:14px'},
+      h('section', {class: 'panel'}, h('h2', {style: 'font-size:1.3rem;margin-bottom:8px'}, 'Der Wettbewerb'), a, h('div', {class: 'row', style: 'margin-top:10px'}, readBtn(() => [a]))),
+      h('section', {class: 'panel'}, h('h2', {style: 'font-size:1.3rem;margin-bottom:8px'}, 'Bix’ Profi-Tipps'), b, h('div', {class: 'row', style: 'margin-top:10px'}, readBtn(() => [b]))),
+      h('section', {class: 'panel links'}, h('h2', {style: 'font-size:1.3rem;margin-bottom:8px'}, 'Für Eltern'),
+        h('ul', {class: 'tips', style: 'margin:0;padding-left:1.2em'},
+          h('li', {}, 'Echte Aufgaben im echten Wettbewerbs-Programm: ', h('a', {href: 'https://wettbewerb.informatik-biber.de/', target: '_blank', rel: 'noopener'}, 'Schnupper-Biber'), ' (bis kurz vor Wettbewerbsbeginn geöffnet).'),
+          h('li', {}, 'Aufgaben der letzten Jahre zum Üben: ', h('a', {href: 'https://bwinf.de/informatik-biber/aufgaben/', target: '_blank', rel: 'noopener'}, 'bwinf.de/informatik-biber/aufgaben'), ' und die ', h('a', {href: 'https://bwinf.de/biber/downloads/', target: '_blank', rel: 'noopener'}, 'Biberhefte mit Lösungen'), '.'),
+          h('li', {}, 'Ob es beim Wettbewerb Unterstützung beim Lesen gibt, klären Sie am besten mit der Lehrkraft, die den Biber an der Schule betreut. Zweier-Teams sind laut BWINF erlaubt.')))));
+  document.title = 'Tipps · Biber-Blockwelt';
+  if (fromClick && store.settings.auto) Reader.read([a]);
+}
+
+/* ---------- Lesen & Hören ---------- */
+let renderVoices = null;
+function buildSheet(){
+  const sh = $('#sheet');
+  const seg = (opts, cur, set) => h('div', {class: 'seg'}, ...opts.map(([v, l]) => h('button', {type: 'button', 'aria-pressed': String(cur() === v), onclick: e => { set(v); [...e.currentTarget.parentNode.children].forEach(b => b.setAttribute('aria-pressed', 'false')); e.currentTarget.setAttribute('aria-pressed', 'true'); save(); }}, l)));
+  const voiceSel = h('select', {id: 'voice-sel', 'aria-label': 'Stimme'});
+  renderVoices = () => {
+    voiceSel.replaceChildren();
+    if (!Reader.voices.length){ voiceSel.append(h('option', {value: ''}, Reader.ok ? 'Standard-Stimme' : 'Vorlesen nicht verfügbar')); return; }
+    Reader.voices.forEach(v => voiceSel.append(h('option', {value: v.voiceURI, selected: Reader.voice && v.voiceURI === Reader.voice.voiceURI ? true : null}, v.name)));
+  };
+  voiceSel.addEventListener('change', () => { store.settings.voice = voiceSel.value; Reader.pick(); save(); });
+  renderVoices();
+  const auto = h('input', {type: 'checkbox', id: 'auto-read'}); auto.checked = !!store.settings.auto; auto.addEventListener('change', () => { store.settings.auto = auto.checked; save(); });
+  const snd = h('input', {type: 'checkbox', id: 'sound-on'}); snd.checked = !!store.settings.sound; snd.addEventListener('change', () => { store.settings.sound = snd.checked; save(); });
+  const resetArea = h('div');
+  const resetBtn = h('button', {class: 'btn small', type: 'button', onclick: () => {
+    resetArea.replaceChildren(h('span', {style: 'font-weight:700;margin-right:8px'}, 'Alle Kristalle löschen?'), h('button', {class: 'btn small gold', type: 'button', onclick: () => { store.solved = {}; store.probe = null; save(); updateGems(); resetArea.replaceChildren(); toast('Fortschritt gelöscht.'); route(location.hash.slice(1), false); }}, 'Ja, löschen'), ' ', h('button', {class: 'btn small', type: 'button', onclick: () => resetArea.replaceChildren()}, 'Nein'));
+  }}, 'Fortschritt zurücksetzen');
+  sh.replaceChildren(h('h2', {style: 'font-size:1.3rem;margin-bottom:12px'}, 'Lesen & Hören'),
+    h('div', {class: 'set'},
+      h('span', {style: 'font-weight:700'}, 'Automatisch vorlesen'), h('label', {class: 'sw', for: 'auto-read'}, auto, 'Aufgaben beim Öffnen vorlesen'),
+      h('span', {style: 'font-weight:700'}, 'Lesetempo'), seg([[0.75, 'Langsam'], [0.9, 'Normal'], [1.05, 'Schnell']], () => store.settings.rate, v => { store.settings.rate = v; }),
+      h('span', {style: 'font-weight:700'}, 'Stimme'), h('div', {class: 'row'}, voiceSel, h('button', {class: 'btn small', type: 'button', onclick: e => Reader.read(['Hallo! Ich bin Bix. So klinge ich beim Vorlesen.'], null)}, 'Probe hören')),
+      h('span', {style: 'font-weight:700'}, 'Schriftgröße'), seg([[1, 'Normal'], [1.15, 'Groß'], [1.3, 'Sehr groß']], () => store.settings.scale, v => { store.settings.scale = v; applyScale(); }),
+      h('span', {style: 'font-weight:700'}, 'Töne'), h('label', {class: 'sw', for: 'sound-on'}, snd, 'Kurzer Ton bei richtiger Lösung'),
+      h('span', {}), h('div', {}, resetBtn, resetArea)),
+    h('p', {class: 'note', style: 'margin:12px 0 0'}, Reader.ok ? 'Tipp: Tippe auf einen einzelnen Satz, dann wird nur dieser Satz vorgelesen. Welche Stimmen es gibt, hängt vom Gerät ab.' : 'Dieser Browser kann leider nicht vorlesen. Probiere Chrome, Edge oder Safari.'),
+    h('div', {class: 'row', style: 'margin-top:12px;justify-content:flex-end'}, h('button', {class: 'btn', type: 'button', onclick: toggleSheet}, 'Fertig')));
+}
+function toggleSheet(){ const sh = $('#sheet'), b = $('#btn-set'); sh.hidden = !sh.hidden; b.setAttribute('aria-expanded', String(!sh.hidden)); if (!sh.hidden) sh.scrollIntoView({block: 'nearest'}); }
+
+/* ---------- Start ---------- */
+$('#logo').src = TEX.bix; $('#gem-ico').src = TEX.gem;
+$('#home-btn').addEventListener('click', () => nav('welt'));
+$('#btn-tips').addEventListener('click', () => nav('tipps'));
+$('#btn-set').addEventListener('click', toggleSheet);
+Reader.init(); buildSheet(); updateGems();
+route(location.hash.slice(1), false);
+
+/* Test-Hilfe für die Entwicklung */
+window.__biber = {
+  LEVELS,
+  async verify(){
+    const out = [];
+    for (const L of LEVELS){
+      for (const test of [false, true]){
+        const box = document.createElement('div'); const inst = L.build(box, {test});
+        let neg; try { neg = await inst.check({silent: true}); } catch (e) { neg = {err: String(e)}; }
+        let pos = null;
+        for (let k = 0; k < 5; k++){ inst.solve(); try { pos = await inst.check({silent: true}); } catch (e) { pos = {err: String(e)}; break; } if (pos.ok || !pos.progress) break; }
+        out.push({id: L.id, test, negOk: !!(neg && neg.ok), posOk: !!(pos && pos.ok), err: (neg && neg.err) || (pos && pos.err) || null});
+      }
+    }
+    return out;
+  }
+};
+})();
+</script>
+</body>
+</html>
