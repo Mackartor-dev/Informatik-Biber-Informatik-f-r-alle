@@ -2,7 +2,7 @@
 
 Ein kleines Lernspiel zur Vorbereitung auf den [Informatik-Biber](https://bwinf.de/biber/), abgestimmt auf **Klassenstufe 5–6** (12 Aufgaben in 35 Minuten, je 4 leicht / mittel / schwer).
 
-**Spielen:** https://mackartor-dev.github.io/informatik-biber-informatik-f-r-alle/
+**Spielen:** https://mackartor-dev.github.io/Informatik-Biber-Informatik-f-r-alle/
 
 ## Was drin ist
 
