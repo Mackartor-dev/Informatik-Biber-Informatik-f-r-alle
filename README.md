@@ -12,16 +12,18 @@ Ein kleines Lernspiel zur Vorbereitung auf den [Informatik-Biber](https://bwinf.
   - Wald – Sortieren und Entscheiden (Sortieren mit zwei Regeln, Entscheidungsbaum, Sortier-Netzwerk, Optimierung)
   - Berge – Logik und Wege (Breitensuche, Logik-Gatter, Graph-Färbung, kürzester Weg)
 - **Vorlesen für alles:** Aufgaben, Antwortkarten, Tipps und Erklärungen. Der gerade gesprochene Satz und das Wort werden farbig markiert. Ein Tipp auf einen einzelnen Satz liest nur diesen Satz vor.
-- **Legasthenie-freundlich:** gut lesbare Schrift (Lexend), große Zeilenabstände, kurze Sätze, einstellbare Schriftgröße und Lesetempo.
+- **Legasthenie-freundlich:** gut lesbare Schrift (Lexend, Zahlen in Atkinson Hyperlegible), große Zeilenabstände, kurze Sätze, einstellbare Schriftgröße und Lesetempo.
 - **Probe-Biber:** 12 zufällig gewählte Aufgaben (4 / 4 / 4) mit 35-Minuten-Uhr, Auswertung erst am Ende.
 - Nach jeder gelösten Aufgabe: „Profi-Wissen“, das erklärt, welches Informatik-Thema dahintersteckt.
+- **Inventar:** Jede gelöste Aufgabe bringt einen Diamanten. Wer alle 15 Diamanten gesammelt hat, bekommt von Bix das Drachenei überreicht.
+- Alle Zahlen stehen in einer besonders gut lesbaren Schrift (Atkinson Hyperlegible).
 
 ## Technik
 
 - Eine einzige Datei: `index.html` (HTML, CSS und JavaScript, keine Build-Schritte).
 - Vorlesen nutzt die eingebaute Sprachausgabe des Browsers (Web Speech API). Welche deutschen Stimmen verfügbar sind, hängt vom Gerät ab. Am besten funktioniert es in Chrome, Edge und Safari.
 - Alle Grafiken werden im Browser selbst erzeugt; nur die Schriften kommen von Google Fonts.
-- Der Fortschritt (Kristalle, Einstellungen) wird nur lokal im Browser gespeichert (`localStorage`).
+- Der Fortschritt (Diamanten, Drachenei, Einstellungen) wird nur lokal im Browser gespeichert (`localStorage`).
 
 ## Hinweis
 
