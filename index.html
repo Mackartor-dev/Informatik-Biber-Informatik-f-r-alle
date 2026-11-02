@@ -21,7 +21,7 @@
   --focus:#1F5FD1; --mark-s:#FFF0A3; --mark-w:#FFCF33;
   --wire:#8A7A62; --wire-on:#F0AE12; --chip:#E6D9B5; --cell:#E9DFC3; --cell-line:#CDBE98;
   --shade:rgba(0,0,0,.22); --light:rgba(255,255,255,.35);
-  --slot:#9C8A64; --egg-glow:rgba(88,200,140,.6); --scrim:rgba(20,24,32,.55);
+  --slot:#9C8A64; --egg-glow:rgba(160,80,230,.55); --scrim:rgba(20,24,32,.55);
   --f-body:'Lexend','Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
   --f-pix:'Pixelify Sans','Lexend',system-ui,sans-serif;
   --f-num:'Atkinson Hyperlegible','Lexend',system-ui,sans-serif;
@@ -37,7 +37,7 @@
   --focus:#86B6FF; --mark-s:#4B4322; --mark-w:#8F7612;
   --wire:#6D7489; --wire-on:#F6C445; --chip:#394052; --cell:#2F3647; --cell-line:#454E64;
   --shade:rgba(0,0,0,.4); --light:rgba(255,255,255,.12);
-  --slot:#151A24; --egg-glow:rgba(110,230,170,.45); --scrim:rgba(0,0,0,.66);
+  --slot:#2B3242; --egg-glow:rgba(190,120,255,.5); --scrim:rgba(0,0,0,.66);
   color-scheme:dark;
 }}
 :root[data-theme="dark"]{
@@ -50,7 +50,7 @@
   --focus:#86B6FF; --mark-s:#4B4322; --mark-w:#8F7612;
   --wire:#6D7489; --wire-on:#F6C445; --chip:#394052; --cell:#2F3647; --cell-line:#454E64;
   --shade:rgba(0,0,0,.4); --light:rgba(255,255,255,.12);
-  --slot:#151A24; --egg-glow:rgba(110,230,170,.45); --scrim:rgba(0,0,0,.66);
+  --slot:#2B3242; --egg-glow:rgba(190,120,255,.5); --scrim:rgba(0,0,0,.66);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -299,7 +299,7 @@ h1,h2,h3{font-family:var(--f-pix);font-weight:700;line-height:1.2;text-wrap:bala
 .slot.sm{width:44px;height:44px;border-width:2px;box-shadow:inset 2px 2px 0 var(--shade),inset -2px -2px 0 var(--light)}
 .slot .cnt{position:absolute;right:4px;bottom:1px;font-family:var(--f-num);font-weight:700;font-size:1.15rem;line-height:1;color:#FFFFFF;text-shadow:2px 2px 0 #1C1C1C;font-variant-numeric:tabular-nums}
 .slot.sm .cnt{right:2px;bottom:0;font-size:.95rem}
-img.ghost{filter:grayscale(1);opacity:.32}
+img.ghost{filter:grayscale(1) brightness(1.8);opacity:.35}
 .slot.pop{animation:pop .8s ease-out}
 @keyframes pop{0%{transform:scale(1)}30%{transform:scale(1.35)}100%{transform:scale(1)}}
 .inv{margin-top:28px;scroll-margin-top:110px}
@@ -506,16 +506,17 @@ TEX.egg = (function(){
     if (!inside(x, y)) continue;
     const edge = !inside(x - 1, y) || !inside(x + 1, y) || !inside(x, y - 1) || !inside(x, y + 1);
     let col;
-    if (edge) col = '#0F3B2E';
+    if (edge) col = '#07050B';
     else {
       const dx = (x + 0.5 - cx) / R, t = (y + 0.5 - top) / (bot - top);
-      col = dx > 0.42 ? '#1C6B4E' : (dx < -0.38 && t < 0.62 ? '#46B080' : '#2C8C65');
-      if ((y % 3 === 0) && ((x + (Math.floor(y / 3) % 2) * 2) % 4 === 0)) col = dx > 0.42 ? '#2E8A66' : '#7FD9A8';
-      if (r() < 0.07) col = '#F2C94C';
+      col = dx > 0.42 ? '#120D18' : (dx < -0.38 && t < 0.62 ? '#2E2438' : '#1D1625');
+      const q = r();
+      if (q < 0.10) col = dx > 0.42 ? '#6B2A99' : '#A44BE0';
+      else if (q < 0.14) col = '#D08CFF';
     }
     c.fillStyle = col; c.fillRect(x, y, 1, 1);
   }
-  [[8,6],[9,6],[8,7]].forEach(([x, y]) => { if (inside(x, y)){ c.fillStyle = '#E3FFF0'; c.fillRect(x, y, 1, 1); } });
+  [[8,6],[9,6],[8,7]].forEach(([x, y]) => { if (inside(x, y)){ c.fillStyle = '#4A3D5C'; c.fillRect(x, y, 1, 1); } });
   return upscale(cv, N);
 })();
 TEX.ingot = sprite(["........","..yyyy..",".yWyyyy.","yWyyyyyO","yyyyyyOO",".OOOOOO.","........","........"], {y:'#F5C542', W:'#FFF2B8', O:'#B9861A'});
